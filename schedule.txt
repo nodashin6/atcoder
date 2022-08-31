@@ -1,0 +1,28 @@
+09/01/2022
+To Do:
+- primenumber.py
+- segmenttree.py
+- lazysegmenttree.py
+
+09/02/2022
+To Do:
+- binarysearch.py
+- cumsum.py
+- dfs_bfs.py
+
+09/03/2022
+To Do:
+- dijkstra.py
+- floydwarshall.py
+- binaryindexedtree.py
+
+09/04/2022
+To Do:
+- kruskal.py
+- dp.py
+- powarray.py
+
+09/05/2022
+To Do:
+- meetinmiddle.py
+- multiset.py
