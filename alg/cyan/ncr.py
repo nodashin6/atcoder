@@ -9,8 +9,6 @@ class MODnCr():
     10
 
     10 = 5!/(3!2!)
-
-    File:
     """
 
     def __init__(self, n, mod):
