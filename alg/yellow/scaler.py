@@ -29,3 +29,6 @@ class ScaleReduction():
     def __getitem__(self, i):
         """convert value to index"""
         return self.a[i]
+
+    def __len__(self):
+        return len(self.a)
