@@ -7,7 +7,7 @@ class SortedMultiset():
         insert value with allowing duplicates.
     add(x)
         Insert value if value is not in set.
-        Checking the exsit of value make `add` more costly than `insert`.
+        Checking the exsit of `x` makes `add` more costly than `insert`.
     lower_bound(x)
         Returns an 2d index of the first element in the range which does not 
         compare less than `x`.
