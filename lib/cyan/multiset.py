@@ -44,17 +44,27 @@ class SortedMultiset():
 
     Problems
     --------
-    [SortedMultiset]
-    ABC217D: https://atcoder.jp/contests/abc217/submissions/34520676
+    SortedMultiset
+    - ABC217D: https://atcoder.jp/contests/abc217/submissions/34520676
 
-    [count_inversion]
-    ABC261F: https://atcoder.jp/contests/abc261/submissions/34520554
+    using as heapque
+    - ABC267E: https://atcoder.jp/contests/abc267/submissions/34593247
+    
+    count_inversion
+    - ABC261F: https://atcoder.jp/contests/abc261/submissions/34520554
     """
 
     def __init__(self, a=[], max_capacity=4096):
-        self.size = len(a)
-        self.a = [a] if a else []
+
         self.MC = max_capacity
+        self.size = len(a)
+        self.a = []
+        if a:
+            n_iter = self.size//self.MC + min(1, self.size%self.MC)
+            for i in range(n_iter):
+                l = i * self.MC
+                r = l + self.MC
+                self.a.append(a[l:r])
 
     def _bisect_row_index(self, v):
         l, r = 0, len(self.a)
@@ -107,9 +117,6 @@ class SortedMultiset():
         i, j = self.lower_bound(x)
         if self[i, j] == x:
             self.pop(i, j)
-            self.size -= 1
-            if not self.a[i]:
-                del self.a[i]
         else:
             raise ValueError("list.remove(x): x not in list")
 
