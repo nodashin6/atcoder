@@ -46,12 +46,12 @@ class SortedMultiset():
     --------
     SortedMultiset
     - ABC217D: https://atcoder.jp/contests/abc217/submissions/34520676
+
+    using as heapque
+    - ABC267E: https://atcoder.jp/contests/abc267/submissions/34593247
     
     count_inversion
     - ABC261F: https://atcoder.jp/contests/abc261/submissions/34520554
-
-    to_heapq
-    - ABC267E: https://atcoder.jp/contests/abc267/submissions/34621229
     """
 
     def __init__(self, a=[], max_capacity=4096):
@@ -227,57 +227,3 @@ class SortedMultiset():
             cnt += sm.ope(x)
             sm.insert(x)
         return cnt
-
-    @classmethod
-    def to_heapq(cls, a=[], max_capacity=1024):
-
-        def push(self, v):
-            if not self.a:
-                i = 0
-                obj = self.a
-                v = [v]
-            else:
-                i = self._reversed_bisect_row_index(v)
-                obj = self.a[i]
-            self._reversed_insort(obj, v)
-            self.size += 1
-            self._split(i)
-            return
-
-        def pop(self):
-            if not self.a:
-                raise IndexError("pop from empty list")
-            self.size -= 1
-            if len(self.a[-1]) == 1:
-                return self.a.pop()[0]
-            else:
-                return self.a[-1].pop()
-
-        def _reversed_bisect_row_index(self, v):
-            l, r = len(self.a)-1, -1
-            while l-r > 1:
-                m = (l+r)//2
-                # <=, < どちらでもOK
-                if self.a[m][-1] <= v:
-                    l = m
-                else:
-                    r = m
-            return l
-
-        def _reversed_insort(self, a, v):
-            l, r = len(a), -1
-            while l-r > 1:
-                m = (l+r)//2
-                if a[m] < v:
-                    l = m
-                else:
-                    r = m
-            a.insert(l, v)
-            return
-
-        cls.push = push
-        cls.pop = pop
-        cls._reversed_bisect_row_index = _reversed_bisect_row_index
-        cls._reversed_insort = _reversed_insort
-        sm = cls(a=a, max_capacity=max_capacity)
-        return sm
