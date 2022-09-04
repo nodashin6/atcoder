@@ -1,8 +1,3 @@
-# ABC267E
-
-import sys
-input = sys.stdin.readline
-
 import bisect
 class SortedMultiset():
     """
