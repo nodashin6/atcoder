@@ -1,8 +1,3 @@
-# ABC267E
-
-import sys
-input = sys.stdin.readline
-
 class VariablePriorityQueue():
 
     def __init__(self, n, arr=None):
