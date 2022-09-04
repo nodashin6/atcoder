@@ -1,7 +1,7 @@
 class BinaryTrie():
     """
     If values are greater than 10^5, 
-    values must be reduced scale as preprocess.
+    values must be reduced scale as preprocessing.
 
     Problems
     --------
