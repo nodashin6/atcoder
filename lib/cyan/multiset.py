@@ -12,7 +12,9 @@ class SortedMultiset():
         Returns an 2d index of the first element in the range which does not 
         compare less than `x`.
     pop(i, j):
-        Removes and retruns the element at the specified index.
+        Removes and returns the element at the specified index.
+    popright():
+        Removes and returns the last element.
     remove(x):
         Removes the first item from the list which matches the specified value.
     count(x):
@@ -50,8 +52,9 @@ class SortedMultiset():
     [2] count_inversion
     - ABC261F: https://atcoder.jp/contests/abc261/submissions/34520554
 
-    [3] to_heapq
-    - ABC267E: https://atcoder.jp/contests/abc267/submissions/34621229
+    [3] using as heapq
+    Use push(value * -1) and popright().
+    - ABC267E: https://atcoder.jp/contests/abc267/submissions/34655850
     """
 
     def __init__(self, a=[], max_capacity=4096):
@@ -111,6 +114,13 @@ class SortedMultiset():
         self.size -= 1
         if not self.a[i]:
             del self.a[i]
+        return x
+
+    def popright(self):
+        x = self.a[-1].pop()
+        self.size -= 1
+        if not self.a[-1]:
+            del self.a[-1]
         return x
 
     def remove(self, x):
@@ -244,54 +254,31 @@ class SortedMultiset():
             sm.insert(x)
         return cnt
 
-    @classmethod
-    def to_heapq(cls, a=[], max_capacity=1024):
 
-        def push(self, v):
-            if not self.a:
-                i = 0
-                obj = self.a
-                v = [v]
-            else:
-                i = self._reversed_bisect_row_index(v)
-                obj = self.a[i]
-            self._reversed_insort(obj, v)
-            self.size += 1
-            self._split(i)
-            return
+N, M = map(int, input().split())
+A = list(map(int, input().split()))
+G = [set([]) for _ in range(N)]
+C = [0]*N
+for _ in range(M):
+    u, v = map(int, input().split())
+    u -= 1
+    v -= 1
+    G[u].add(v)
+    G[v].add(u)
+    C[u] += A[v]
+    C[v] += A[u]
 
-        def pop(self):
-            if not self.a:
-                raise IndexError("pop from empty list")
-            self.size -= 1
-            if len(self.a[-1]) == 1:
-                return self.a.pop()[0]
-            else:
-                return self.a[-1].pop()
-
-        def _reversed_bisect_row_index(self, v):
-            l, r = len(self.a)-1, -1
-            while l-r > 1:
-                m = (l+r)//2
-                if self.a[m][-1] <= v:
-                    l = m
-                else:
-                    r = m
-            return l
-
-        def _reversed_insort(self, a, v):
-            l, r = len(a), -1
-            while l-r > 1:
-                m = (l+r)//2
-                if a[m] < v:
-                    l = m
-                else:
-                    r = m
-            a.insert(l, v)
-            return
-
-        cls.push = push
-        cls.pop = pop
-        cls._reversed_bisect_row_index = _reversed_bisect_row_index
-        cls._reversed_insort = _reversed_insort
-        return cls(a=a, max_capacity=max_capacity)
+not_seen = set(range(N))
+sm = SortedMultiset(a=sorted([[-ci, i] for i, ci in enumerate(C)]))
+ans = 0
+x = -1
+for _ in range(N):
+    while x not in not_seen:
+        cx, x = sm.popright()
+        cx *= -1
+    not_seen.remove(x)
+    ans = max(ans, cx)
+    for y in G[x].intersection(not_seen):
+        C[y] -= A[x]
+        sm.insert([-C[y], y])
+print(ans)
