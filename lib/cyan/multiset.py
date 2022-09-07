@@ -253,32 +253,3 @@ class SortedMultiset():
             cnt += sm.ope(x)
             sm.insert(x)
         return cnt
-
-
-N, M = map(int, input().split())
-A = list(map(int, input().split()))
-G = [set([]) for _ in range(N)]
-C = [0]*N
-for _ in range(M):
-    u, v = map(int, input().split())
-    u -= 1
-    v -= 1
-    G[u].add(v)
-    G[v].add(u)
-    C[u] += A[v]
-    C[v] += A[u]
-
-not_seen = set(range(N))
-sm = SortedMultiset(a=sorted([[-ci, i] for i, ci in enumerate(C)]))
-ans = 0
-x = -1
-for _ in range(N):
-    while x not in not_seen:
-        cx, x = sm.popright()
-        cx *= -1
-    not_seen.remove(x)
-    ans = max(ans, cx)
-    for y in G[x].intersection(not_seen):
-        C[y] -= A[x]
-        sm.insert([-C[y], y])
-print(ans)
