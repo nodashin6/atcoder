@@ -1,24 +1,41 @@
 # https://github.com/nodashin6/atcoder/blob/main/ds/yellow/segmenttree.py
 from collections.abc import Sequence
+import math
 class SegmentTree(Sequence):
     """
-    segmenttree
+    segment tree
+
+    Methods
+    -------
+    replece(i, v)
+        replace value at specified position.
+    value_query(l=0, r=None, nodes=[])
+        query in range of [l, r) and return aggregated value.
+    index_query(l=0, r=None, nodes=[])
+        query in range of [l, r) and return index of the values.
 
     Problems
     --------
     [RMQ]
-    ABC267E: https://atcoder.jp/contests/abc267/submissions/34684195
+    ABC267E: https://atcoder.jp/contests/abc267/submissions/34691372
     """
     INF = 1<<62
-    
-    def __init__(self, a=[], default_value=INF, agg=min):
+    AGGFUNCS = {
+        'min': lambda a, b: (a, b)[a>b],
+        'max': lambda a, b: (a, b)[a<b],
+        'sum': lambda a, b: a + b,
+        'gcd': math.gcd,
+        'xor': lambda a, b: a ^ b
+        }
+
+    def __init__(self, a=[], default_value=INF, agg='min'):
 
         n = len(a)
         self.bit_len = (n - 1).bit_length()
         self.m = (1 << self.bit_len) - 1
         self.n = self.m + n
 
-        self.agg = agg
+        self.agg = self.AGGFUNCS[agg]
 
         self.DV = default_value
         self.a = [self.DV]*self.m + a
@@ -30,8 +47,9 @@ class SegmentTree(Sequence):
             while i&1:
                 j = i>>1
                 if i+1 < self.n:
-                    self.a[j] = self.a[i+1]
-                self.a[j] = self.agg(self.a[i], self.a[j])
+                    self.a[j] = self.agg(self.a[i], self.a[i+1])
+                else:
+                    self.a[j] = self.a[i]
                 i, j = j, j>>1
 
     def replace(self, i, v):
@@ -39,14 +57,18 @@ class SegmentTree(Sequence):
         self.a[i] = v
         while i>0:
             j = (i-1)>>1
+            # calculate
+            if ~i&1:
+                v = self.agg(self.a[i-1], self.a[i])
+            elif i+1 < self.n:
+                v = self.agg(self.a[i], self.a[i+1])
+            else:
+                v = self.a[i]
+            # update
             if self.a[j] == self.a[i]:
                 break
-            if ~i&1:
-                self.a[j] = self.agg(self.a[i-1], self.a[i])
-            elif i+1 < self.n:
-                self.a[j] = self.agg(self.a[i], self.a[i+1])
             else:
-                self.a[j] = self.a[i]
+                self.a[j] = v
             i, j = j, (j-1)>>1
         return
 
