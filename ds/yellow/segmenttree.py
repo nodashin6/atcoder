@@ -1,8 +1,16 @@
 # https://github.com/nodashin6/atcoder/blob/main/ds/yellow/segmenttree.py
 from collections.abc import Sequence
 class SegmentTree(Sequence):
+    """
+    segmenttree
 
+    Problems
+    --------
+    [RMQ]
+    ABC267E: https://atcoder.jp/contests/abc267/submissions/34684195
+    """
     INF = 1<<62
+    
     def __init__(self, a=[], default_value=INF, agg=min):
 
         n = len(a)
@@ -13,7 +21,7 @@ class SegmentTree(Sequence):
         self.agg = agg
 
         self.DV = default_value
-        self.a = [default_value]*self.m + a
+        self.a = [self.DV]*self.m + a
         self._build()
         return
         
@@ -42,29 +50,58 @@ class SegmentTree(Sequence):
             i, j = j, (j-1)>>1
         return
 
-    def query(self, l, r):
-        l += self.m
-        r += self.m
-        if l < 0 or self.n < r:
-            raise IndexError("Sequence index out of range.")
-        locs = []
-        while r-l > 0:
-            if ~l&1:
-                locs.append(l)
-            if ~r&1:
-                locs.append(r-1)
-            l = (l-1)>>1
-            r = (r-1)>>1
+    def value_query(self, l=0, r=None, nodes=[]):
+        nodes = self._get_index(l, r) if not nodes else nodes
         v = self.DV
-        for i in locs:
-            v = self.agg(v, self.a[i])
+        for i in nodes:
+            if self.a[i] == self.agg(v, self.a[i]):
+                v = self.a[i]
         return v
 
+    def index_query(self, l=0, r=None, nodes=[]):
+        nodes = self._get_index(l, r) if not nodes else nodes
+        index = None
+        v = self.DV
+        for i in reversed(nodes):
+            if self.a[i] == self.agg(v, self.a[i]):
+                index = i
+                v = self.a[i]
+            
+        while index < self.m:
+            r = (index<<1) + 2
+            if r < self.n and self.a[r] == v:
+                index = r
+            else:
+                index = r - 1
+        return index - self.m
+
+    def _get_index(self, l=0, r=None):
+        l = l + self.m
+        r = self.n if r is None else r + self.m
+        if l < 0 or self.n < r:
+            raise IndexError("Sequence index out of range.")
+        nodes = []
+        while r-l > 0:
+            if ~l&1:
+                nodes.append(l)
+                l += 1
+            if ~r&1:
+                nodes.append(r-1)
+            l = (l-1)>>1
+            r = (r-1)>>1
+        return nodes
+
     def __getitem__(self, index):
+        if index < 0:
+            index += len(self)
+        if index < 0:
+            raise ValueError("Sequence index out of range.")
         return self.a[index+self.m]
     def __setitem__(self, index, value):
         self.replace(index, value)
         return
+    def __contains__(self, value: object) -> bool:
+        return value in self.a[self.m:]
     def __len__(self):
         return self.n - self.m
     def __str__(self) -> str:
