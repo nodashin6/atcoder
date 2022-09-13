@@ -11,7 +11,7 @@ class MODnCr():
     10 = 5!/(3!2!)
     """
 
-    def __init__(self, n, mod=1_000_000_007):
+    def __init__(self, n=1, mod=1_000_000_007):
         self.n = 1
         self.P = mod
         self.fac0 = [1, 1]  # n!
@@ -29,7 +29,7 @@ class MODnCr():
         if b < 0 or a-b < 0:
             return 0
         if a > self.n:
-            self.setup(start=self.n+1, end=a+1)
+            self._setup(start=self.n+1, end=a+1)
         return self.fac0[a]*self.fac1[b]*self.fac1[a-b] % self.P
 
     def _setup(self, start, end):
