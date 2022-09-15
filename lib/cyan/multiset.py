@@ -125,6 +125,9 @@ class SortedMultiset():
 
     def remove(self, x):
         i, j = self.lower_bound(x)
+        if j == len(self.a[i]):
+            j = 0
+            i += 1
         if self.iloc(i, j) == x:
             self.pop(i, j)
         else:
