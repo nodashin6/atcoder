@@ -30,7 +30,7 @@ class MODnCr():
             return 0
         if a > self.n:
             self._setup(start=self.n+1, end=a+1)
-        return self.fac0[a]*self.fac1[b]*self.fac1[a-b] % self.P
+        return self.fac0[a]*self.fac1[b]*self.fac1[a-b] % self.Pgit 
 
     def _setup(self, start, end):
 
