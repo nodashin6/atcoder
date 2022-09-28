@@ -1,8 +1,3 @@
-# ACLPC:L
-
-# import sys
-# input = sys.stdin.readline
-
 from collections.abc import Sequence
 class LazySegmentTree(Sequence):
     """
