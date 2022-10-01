@@ -4,33 +4,32 @@ class Mask:
     For examle [1, 1] is converted to 101 by twice left shit.
     """
 
-    def __init__(self, n=30, w=2):
+    def __init__(self, n=30):
         """
         n : int
             [n=30] 1<<n = 2**30 > 10**9
         """
         self.n = n
-        self.w = w
-        self.b = 1 << self.n
+        self.b = 1<<n
 
     def toint(self, seq):
-        v = 0
-        for i, x in enumerate(seq):
-            n = self.n * (self.w - i - 1)
-            v += x << n
-        return v
+        x, y = seq
+        return (x<<self.n) + y
 
     def tolist(self, v):
-        seq = []
-        for i in range(self.w):
-            seq.append(v%self.b)
-            v >>= self.n
-        return seq[::-1]
-
+        return (v>>self.n, v%self.b)
+        
     @classmethod
-    def for_sorted(cls, a, n=30, key=None, reverse=False):
-        mask = cls(n=30, w=len(a[0]))
-        b = [mask.toint(ai) for ai in a]
-        b.sort(key=key, reverse=reverse)
-        for bi in b:
-            yield mask.tolist(bi)
+    def sorted(cls, a, reverse=False):
+        mask = cls(n=len(a).bit_length())
+        data = [None]*len(a)
+        obj = []
+        for i, (ai, *other) in enumerate(a):
+            data[i] = other
+            obj.append(mask.toint([ai, i]))
+        obj.sort(reverse=reverse)
+        a_sorted = []
+        for ai_masked in obj:
+            ai, i = mask.tolist(ai_masked)
+            a_sorted.append([ai] + data[i])
+        return a_sorted

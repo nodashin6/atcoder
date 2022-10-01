@@ -18,7 +18,7 @@ class UnionFind():
         self._parents_set = set(range(n))
         swap_methods = {
             'auto': self._swap_auto,
-            'left': self._swap_left}
+            'left': self._id}
         self.swap = swap_methods[kind]
     
     def _swap_auto(self, x, y):
@@ -26,8 +26,8 @@ class UnionFind():
             x, y = y, x
         return x, y
 
-    def _swap_left(self, x, y):
-        return x, y
+    def _id(self, *args):
+        return args
 
     def unite(self, x, y):
         if self.same(x, y):
@@ -55,4 +55,39 @@ class UnionFind():
     def get_parents(self):
         return self._parents_set
 
+    def get_parents_size(self):
+        return len(self._parents_set)
 
+    @classmethod
+    def kruskal(cls, n, edges, inf=1<<62):
+        uf = cls(n=n)
+        uf.cost = 0
+        for c, u, v in edges:
+            if not uf.same(u, v):
+                uf.unite(u, v)
+                uf.cost += c
+                if uf.get_parents_size() == 1:
+                    break
+        if uf.get_parents_size() == 1:
+            return uf.cost
+        else:
+            return inf
+
+    @classmethod
+    def steiner(cls, n, edges, ignore_nodes=set([]), inf=1<<62):
+        ignore_nodes = set(ignore_nodes)
+        uf = cls(n=n)
+        uf._parents_set = uf._parents_set.difference(ignore_nodes)
+        uf.cost = 0
+        for c, u, v in edges:
+            if u in ignore_nodes or v in ignore_nodes:
+                continue
+            if not uf.same(u, v):
+                uf.unite(u, v)
+                uf.cost += c
+            if uf.get_parents_size() == 1:
+                break
+        if uf.get_parents_size() == 1:
+            return uf.cost
+        else:
+            return inf
