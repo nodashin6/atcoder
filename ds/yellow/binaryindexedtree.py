@@ -101,3 +101,27 @@ class BasicBIT():
                 i += (1<<k)
             if i >= self.N:
                 break
+
+
+# -----------------------------------------
+# Application
+# -----------------------------------------
+def count_inversion(a):
+    """
+    転倒数の計算
+
+    Parameters:
+    -----------
+    a : list
+        input integers
+    """
+    # 座標圧縮
+    d = {k: v for v, k in enumerate(sorted(set(a)))}
+
+    cnt = 0
+    r_max = max(d.values())+1
+    bit = BasicBIT(n=r_max, v=0)
+    for i, ai in enumerate(a):
+        cnt += i - bit.sum(r=d[ai]+1)
+        bit.add(i=d[ai], v=1)
+    return cnt
