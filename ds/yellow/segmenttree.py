@@ -1,103 +1,90 @@
 # https://github.com/nodashin6/atcoder/blob/main/ds/yellow/segmenttree.py
 from collections.abc import Sequence
-import math
 class SegmentTree(Sequence):
     """
     segment tree
 
     Methods
     -------
-    replece(i, v)
+    set(i, v)
         replace value at specified position.
-    value_query(l=0, r=None, nodes=[])
+    prod(op, l=0, r=None)
         query in range of [l, r) and return aggregated value.
-    index_query(l=0, r=None, nodes=[])
+    iprod(op, l=0, r=None)
         query in range of [l, r) and return index of the values.
 
     Problems
     --------
     [RMQ]
-    ABC267E: https://atcoder.jp/contests/abc267/submissions/34691372
+    ABC267E: URL
     """
-    INF = 1<<62
-    AGGFUNCS = {
-        'min': lambda a, b: (a, b)[a>b],
-        'max': lambda a, b: (a, b)[a<b],
-        'sum': lambda a, b: a + b,
-        'gcd': math.gcd,
-        'xor': lambda a, b: a ^ b
-        }
 
-    def __init__(self, a=[], default_value=INF, agg='min'):
-
-        n = len(a)
+    def __init__(self, n, e, op):
         self.bit_len = (n - 1).bit_length()
         self.m = (1 << self.bit_len) - 1
         self.n = self.m + n
-
-        self.agg = self.AGGFUNCS[agg]
-
-        self.DV = default_value
-        self.a = [self.DV]*self.m + a
-        self._build()
+        self.op = op
+        self.e = e
+        self.a = [self.e]*self.n
         return
-        
-    def _build(self):
-        for i in reversed(range(self.m, self.n)):
-            while i&1:
-                j = i>>1
-                if i+1 < self.n:
-                    self.a[j] = self.agg(self.a[i], self.a[i+1])
-                else:
-                    self.a[j] = self.a[i]
-                i, j = j, j>>1
 
-    def replace(self, i, v):
+    def set(self, i, v):
         i += self.m
         self.a[i] = v
-        while i>0:
-            j = (i-1)>>1
-            # calculate
-            if ~i&1:
-                v = self.agg(self.a[i-1], self.a[i])
-            elif i+1 < self.n:
-                v = self.agg(self.a[i], self.a[i+1])
+        while i > 0:
+            i = self._U(i)
+            l = self._L(i)
+            r = self._R(i)
+            if r < self.n:
+                self.a[i] = self.op(self.a[l], self.a[r])
             else:
-                v = self.a[i]
-            # update
-            if self.a[j] == self.a[i]:
-                break
-            else:
-                self.a[j] = v
-            i, j = j, (j-1)>>1
+                self.a[i] = self.a[l]
         return
 
-    def value_query(self, l=0, r=None, nodes=[]):
-        nodes = self._get_index(l, r) if not nodes else nodes
-        v = self.DV
-        for i in nodes:
-            if self.a[i] == self.agg(v, self.a[i]):
-                v = self.a[i]
+    def all_prod(self):
+        return self.a[0]
+
+    def prod(self, l=0, r=None):
+        i, v = self._prod(l, r)
         return v
 
-    def index_query(self, l=0, r=None, nodes=[]):
-        nodes = self._get_index(l, r) if not nodes else nodes
-        index = None
-        v = self.DV
-        for i in reversed(nodes):
-            if self.a[i] == self.agg(v, self.a[i]):
-                index = i
-                v = self.a[i]
-            
-        while index < self.m:
-            r = (index<<1) + 2
-            if r < self.n and self.a[r] == v:
-                index = r
-            else:
-                index = r - 1
-        return index - self.m
+    def _prod(self, l=0, r=None):
+        nodes = self._get_nodes(l, r)
+        i = None
+        v = self.e
+        for node in nodes:
+            tmp = self.op(v, self.a[node])
+            if v != tmp:
+                i = node
+                v = tmp
+        return i, v
 
-    def _get_index(self, l=0, r=None):
+    def iprod(self, l=0, r=None):
+        i, v = self._prod(l, r)
+        while i < self.m:
+            r = self._R(i)
+            if r < self.n and self.a[r] == v:
+                i = r
+            else:
+                i = r - 1
+        return i - self.m
+
+    def min_left(self, l, is_f):
+        i = l + self.m
+        while i >= 0 and not is_f(self.a[i]):
+            i = self._U(i)
+        while i < self.m and is_f(self.a[i]):
+            l = self._L(i)
+            r = self._R(i)
+            if is_f(self.a[l]):
+                i = l
+            else:
+                i = r
+        if i > -1:
+            i -= self.m
+        return i
+
+    def _get_nodes(self, l=0, r=None):
         l = l + self.m
         r = self.n if r is None else r + self.m
         if l < 0 or self.n < r:
@@ -112,6 +99,10 @@ class SegmentTree(Sequence):
             l = (l-1)>>1
             r = (r-1)>>1
         return nodes
+    
+    def _U(self, i): return (i-1) >> 1
+    def _L(self, i): return (i<<1) + 1
+    def _R(self, i): return (i<<1) + 2
 
     def __getitem__(self, index):
         if index < 0:
