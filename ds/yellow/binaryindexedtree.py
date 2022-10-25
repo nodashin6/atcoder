@@ -42,14 +42,14 @@ class BIT():
  
     def radd(self, r, v):
         """
-        a[0:r-1] += v
+        a[0:r] += v
         """
         if r < self.N:
             self.bit0.add(i=r, v=v*r)
             self.bit1.add(i=r, v=-v)
         self.bit1.add(i=0, v=v)
         
-    def get_values(self):
+    def tolist(self):
         x = [self.sum(i) for i in range(self.N+1)]
         return [x1-x0 for x0, x1 in zip(x[:-1], x[1:])]
  
@@ -57,7 +57,6 @@ class BIT():
 class BasicBIT():
  
     def __init__(self, a=None, n=None, v=None):
- 
         if a is None:
             self.a = [v]*n
             self.N = n
