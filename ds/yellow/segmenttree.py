@@ -8,9 +8,9 @@ class SegmentTree(Sequence):
     -------
     set(i, v)
         replace value at specified position.
-    prod(op, l=0, r=None)
+    prod(l=0, r=None)
         query in range of [l, r) and return aggregated value.
-    iprod(op, l=0, r=None)
+    iprod(l=0, r=None)
         query in range of [l, r) and return index of the values.
 
     Problems
@@ -69,20 +69,31 @@ class SegmentTree(Sequence):
                 i = r - 1
         return i - self.m
 
-    def min_left(self, l, is_f):
-        i = l + self.m
-        while i >= 0 and not is_f(self.a[i]):
-            i = self._U(i)
-        while i < self.m and is_f(self.a[i]):
-            l = self._L(i)
-            r = self._R(i)
-            if is_f(self.a[l]):
-                i = l
-            else:
-                i = r
-        if i > -1:
-            i -= self.m
-        return i
+    def max_right(self, l, f):
+        l += self.m
+        r = self._R(self.m - 1)
+        v = self.e
+        while True:
+            if ~l&1:
+                if not f(self.op(v, self.a[l])):
+                    while l < self.m:
+                        l = self._L(l)
+                        if f(self.op(v, self.a[l])):
+                            v = self.op(v, self.a[l])
+                            l += 1
+                    break
+                v = self.op(v, self.a[l])
+                if l == r:
+                    l = self.n
+                    break
+                l += 1
+            if l == r:
+                l = self.n
+                break
+            l = self._U(l)
+            r = self._U(r)
+        return l - self.m
+
 
     def _get_nodes(self, l=0, r=None):
         l = l + self.m
@@ -96,6 +107,7 @@ class SegmentTree(Sequence):
                 l += 1
             if ~r&1:
                 nodes.append(r-1)
+                r -= 1
             l = (l-1)>>1
             r = (r-1)>>1
         return nodes
@@ -103,6 +115,10 @@ class SegmentTree(Sequence):
     def _U(self, i): return (i-1) >> 1
     def _L(self, i): return (i<<1) + 1
     def _R(self, i): return (i<<1) + 2
+
+    def dprint(self, *args, **kwargs):
+        if self.debug:
+            print(*args, **kwargs)
 
     def __getitem__(self, index):
         if index < 0:
