@@ -50,7 +50,11 @@ class MODnCr():
         """
         a^(-1) = -(P%a)^(-1) * (P//a)    (mod P)
         """
-        return - self.inv0[self.P%v] * (self.P//v) % self.P
+        if v > 1:
+            return - self.inv0[self.P%v] * (self.P//v) % self.P
+        else:
+            return self.inv0[v]
+
 
 
 def permutation(n, k, mod=1_000_000_007):
