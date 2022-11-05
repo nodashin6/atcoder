@@ -59,6 +59,3 @@ class UndirectedGraph():
         while route_rev[-1] != start:
             route_rev.append(frm[route_rev[-1]])
         return route_rev[::-1]
-
-
-

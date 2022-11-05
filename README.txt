@@ -4,20 +4,6 @@ devブランチで作業して、mainにマージします。
 
 E8氏（Twitter: @e869120）の内容に沿って、
 Pythonのライブラリを整備したいと思います。
-
-<< directory >>
-atcoder
- |- alg (algorithm)
- |   |- cyan (to be cyan coder)
- |   |- yellow (to be yellow coder)
- |
- |- ds (data structure)
- |   |- cyan (to be cyan coder)
- |   |- yellow (to be yello coder)
- |
- |- lib (library)
- |- utils (other useful things)
-
 -------------------------------------------------------------
 レッドコーダーが教える、競プロ・AtCoder上達のガイドライン
 -------------------------------------------------------------
