@@ -7,7 +7,7 @@
 $\sqrt{N}$ 個のバケットに分割したSortedMultisetです。
 bucket indexのイテレーションに $\sqrt[4]{N}$ ごとにスキップ接続を加えたことで，高速化を図っています。
 
-競プロではすでに有名な軽量コードかつ高速な[tatyam氏](https://twitter.com/tatyam_prime)の[SortedMultiset](https://github.com/tatyam-prime/SortedSet)があり，
+競プロではすでに有名な軽量コードかつ高速な[tatyam]氏(https://twitter.com/tatyam_prime)の[SortedMultiset](https://github.com/tatyam-prime/SortedSet)があり，
 安心かつ高速なので，そちらを使用する方が多くの場合で最良の選択肢となります。
 
 ### スキップ接続
@@ -54,11 +54,11 @@ randomな整数を $N$ 個入れたときの num_bucket と bucket_size
 |関数|計算量|
 |:--:|:--:|
 |getitem|$O(\sqrt[4]{N})$|
-|insert|$O(\log N)$|
+|insert|$O(\sqrt{N})$|
 |lower_bound|$O(\sqrt[4]{N} + \log N)$|
 |upper_bound|$O(\sqrt[4]{N} + \log N)$|
 |count|$O(\sqrt[4]{N} + \log N)$|
 |ge, gt, le, lt|$O(\log N)$|
-|pop|$O(\sqrt[4]{N})$|
-|discard|$O(\log N)$|
+|pop|$O(\sqrt{N})$|
+|discard|$O(\sqrt{N})$|
 |contains|$O(\log N)$|
