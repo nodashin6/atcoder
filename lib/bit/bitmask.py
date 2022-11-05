@@ -21,6 +21,7 @@ class Mask:
         
     @classmethod
     def sorted(cls, a, reverse=False):
+        """Mask.sorted(a) <==> a.sort(key=lambda x: x[0])"""
         mask = cls(n=len(a).bit_length())
         data = [None]*len(a)
         obj = []

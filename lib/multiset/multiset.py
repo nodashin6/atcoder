@@ -7,11 +7,14 @@ class SortedMultiset():
     insert(x)
         insert value with allowing duplicates.
     add(x)
-        Insert value if value is not in set.
+        Insert value if `x` is not in set.
         Checking the exsit of `x` makes `add` more costly than `insert`.
     lower_bound(x)
         Returns an index of the first element in the range which does not 
         compare less than `x`.
+    upper_bound(x)
+        Returns an index of the first element in the range which
+        compare greater than `x`.
     pop(index):
         Removes and returns the element at the specified index.
     discard(x):
@@ -20,17 +23,6 @@ class SortedMultiset():
         Returns the number of times the specified item appears in the list.
     flatten():
         Convert 2-d multiset to 1-d list. It's like np.arrray.ravel() or sum(seq, []).
-
-    Operators
-    ---------
-    self < x
-        count the numbers in the range which compares less than `x`.
-    self <= x
-        count the numbers in the range which does not compare greater than `x`
-    self > x
-        count the numbers in the range which compares greater than `x`.
-    self >= x
-        count the numbers in the range which does not compare less than `x`
 
     Processing Time
     ---------------
@@ -46,6 +38,7 @@ class SortedMultiset():
     --------
     [1] SortedMultiset
     - ABC217D: https://atcoder.jp/contests/abc217/submissions/36182242
+    - ABC245E: https://atcoder.jp/contests/abc245/submissions/36198523
     [2] count_inversion
     - ABC261F: https://atcoder.jp/contests/abc261/submissions/36182408
     [3] using as variable heap deque
@@ -54,7 +47,7 @@ class SortedMultiset():
 
     def __init__(self, a=[]):
         """
-        `a` must be sorted 1-d list.
+        `a` must be sorted 1-D list.
         """
         if a:
             self._build(a)
@@ -162,7 +155,7 @@ class SortedMultiset():
             self.sizes[0] += 1
         return
     
-    def pop(self, index=0):
+    def pop(self, index=-1):
         """O(N^0.5)"""
         if not self: raise IndexError("pop from empty list")
         if index < 0:
@@ -298,15 +291,8 @@ class SortedMultiset():
             return self.a[i][j]
         raise IndexError
 
-    def __setitem__(self, index, x):
-        if index < 0:
-            index += self.size
-        if 0<= index < len(self):
-            self.pop(index)
-            self.insert(x)
-            return
-        else:
-            raise IndexError
+    def __setitem__(self, *args):
+        raise NotImplementedError("use pop(index) then insert(value)")
 
     def __contains__(self, x):
         return False if self._find(x) is None else True
@@ -328,7 +314,6 @@ class SortedMultiset():
         Processing Time
         ---------------
         conditions
-            max_capacity=4096
         N       Time
         1*10^5  <0.2 sec
         2*10^5  <0.3 sec
