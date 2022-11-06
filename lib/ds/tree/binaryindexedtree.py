@@ -2,13 +2,22 @@
 ## https://github.com/nodashin6/atcoder/blob/main/ds/tree/binaryindexedtree.py
 class BinaryIndexedTree():
     """
+    Methods
+    -------
+    add(i)
+        a[i] += 1. O(log N)
+    sum(r)
+        return a[0] + a[1] + ... + a[r-1]. O(log N)
+
     Problems
     --------
+    ALC_B: https://atcoder.jp/contests/practice2/submissions/36288635
     T90_10: https://atcoder.jp/contests/typical90/submissions/36276290
 
     See Also
     --------
-    1. https://algo-logic.info/binary-indexed-tree/
+    about BinaryIndexedTree : 
+        https://algo-logic.info/binary-indexed-tree/
     """
  
     def __init__(self, a=None, n=None, init_v=None, ruq=True):
@@ -99,7 +108,7 @@ class BinaryIndexedTree():
 
     def _range_add(self, *args):
         raise NotImplementedError(
-            "`range_add()` is not defined when `ruq` is False.")
+            "`range_add(r, v)` is not defined when `ruq` is False.")
 
 
 # -----------------------------------------
