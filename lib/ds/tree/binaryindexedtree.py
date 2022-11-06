@@ -1,22 +1,7 @@
-# -----------------------------------------------------------------------------
-# Binary Indexed Tree
-# https://github.com/nodashin6/atcoder/blob/main/ds/yellow/binaryindexedtree.py
-# -----------------------------------------------------------------------------
+## Binary Indexed Tree
+## https://github.com/nodashin6/atcoder/blob/main/ds/tree/binaryindexedtree.py
 class BinaryIndexedTree():
     """
-    Parameters
-    ----------
-    a : list
-        input data
-    n : int
-        size of bit
-    init_v : int, float
-        init_value
-    ruq : bool
-        `ruq` means Range Update Query (RUQ).
-        If `ruq` is True, BIT can use range_add function 
-        with 1.1~1.4 times cost.
-
     Problems
     --------
     T90_10: https://atcoder.jp/contests/typical90/submissions/36276290
@@ -27,6 +12,20 @@ class BinaryIndexedTree():
     """
  
     def __init__(self, a=None, n=None, init_v=None, ruq=True):
+        """
+        Parameters
+        ----------
+        a : list
+            input data
+        n : int
+            size of bit
+        init_v : int, float
+            init_value
+        ruq : bool
+            `ruq` means Range Update Query (RUQ).
+            If `ruq` is True, BIT can use range_add function 
+            with 1.1~1.4 times cost.
+        """
         if a:
             self.N = len(a)
             self.a = self._build(a.copy())
@@ -39,28 +38,12 @@ class BinaryIndexedTree():
             self.sum = self._asum
             self.range_add = self._range_add
 
-        self._set_graph()
-
     def _build(self, a):
         for i in range(self.N): 
             j = i + (~i & -~i)
             if j < self.N:
                 a[j] += a[i]
         return a
-
-    def _set_graph(self):
-        self.g_add = [[] for _ in range(self.N+1)]
-        for i in reversed(range(self.N)):
-            j = i + (~i & -~i)
-            self.g_add[i].append(i)
-            if j < self.N:
-                self.g_add[i].extend(self.g_add[j])
-        self.g_sum = [[] for _ in range(self.N+1)]
-        for i in range(self.N):
-            j = i - (~i & -~i)
-            if j >= 0:
-                self.g_sum[i].extend(self.g_sum[j])
-            self.g_sum[i].append(i)
 
     def __len__(self):
         return self.N
@@ -82,8 +65,10 @@ class BinaryIndexedTree():
 
     def _sum(self, bit, r):
         v = 0
-        for i in self.g_sum[r-1]:
+        i = r-1
+        while 0 <= i:
             v += bit[i]
+            i -= (~i & -~i)
         return v
 
     def range_add(self, r, v):
@@ -98,8 +83,9 @@ class BinaryIndexedTree():
         self._add(self.a, i, v)
 
     def _add(self, bit, i, v):
-        for i in self.g_add[i]:
+        while i < self.N:
             bit[i] += v
+            i += ~i & -~i
         
     def tolist(self):
         x = [self.sum(i) for i in range(self.N+1)]
@@ -115,6 +101,7 @@ class BinaryIndexedTree():
         raise NotImplementedError(
             "`range_add()` is not defined when `ruq` is False.")
 
+
 # -----------------------------------------
 # Application
 # -----------------------------------------
@@ -124,7 +111,7 @@ def count_inversion(a):
 
     Parameters:
     -----------
-    a : list
+    a : list[int]
         input integers
     """
     # 座標圧縮
