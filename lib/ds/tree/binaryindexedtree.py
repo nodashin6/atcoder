@@ -4,10 +4,12 @@ class BinaryIndexedTree():
     """
     Methods
     -------
-    add(i)
-        a[i] += 1. O(log N)
+    add(i, v)
+        a[i] += v.
+        O(log N)
     sum(r)
-        return a[0] + a[1] + ... + a[r-1]. O(log N)
+        return a[0] + a[1] + ... + a[r-1].
+        O(log N)
 
     Problems
     --------
