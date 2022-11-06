@@ -328,3 +328,24 @@ class SortedMultiset():
             cnt += len(sm) - sm.ope(x)
             sm.insert(x)
         return cnt
+
+    @classmethod
+    def next_permutation(cls, a, reverse=False):
+        """
+        reverse : bool
+            [False] next_permutation
+            [True ] prev_permutation
+        """
+        sm = cls()
+        sm.ope = sm.lt if reverse else sm.gt
+        while a:
+            x = a.pop()
+            sm.insert(x)
+            r = sm.ope(x)
+            if r is not None:
+                a.append(r)
+                sm.discard(r)
+                b = sm.flatten()
+                if reverse:
+                    b = b[::-1]
+                return a + b

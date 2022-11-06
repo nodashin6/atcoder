@@ -2,28 +2,74 @@
 # Binary Indexed Tree
 # https://github.com/nodashin6/atcoder/blob/main/ds/yellow/binaryindexedtree.py
 # -----------------------------------------------------------------------------
-class BIT():
+class BinaryIndexedTree():
     """
+    Parameters
+    ----------
+    a : list
+        input data
+    n : int
+        size of bit
+    init_v : int, float
+        init_value
+    ruq : bool
+        `ruq` means Range Update Query (RUQ).
+        If `ruq` is True, BIT can use range_add function 
+        with 1.1~1.4 times cost.
+
     Problems
     --------
-    T90_10: https://atcoder.jp/contests/typical90/submissions/32480628
+    T90_10: https://atcoder.jp/contests/typical90/submissions/36276290
 
     See Also
     --------
     1. https://algo-logic.info/binary-indexed-tree/
     """
  
-    def __init__(self, a=None, n=None, v=None):
-        
-        self.N = len(a) if a else n
-        self.bit0 = BasicBIT(a=a) if a else BasicBIT(n=n, v=v)
-        self.bit1 = BasicBIT(n=self.N, v=0)
- 
+    def __init__(self, a=None, n=None, init_v=None, ruq=True):
+        if a:
+            self.N = len(a)
+            self.a = self._build(a.copy())
+        else:
+            self.N = n
+            self.a = [init_v]*self.N
+        if ruq:
+            self.b = [0]*self.N
+        else:
+            self.sum = self._asum
+            self.range_add = self._range_add
+
+        self._set_graph()
+
+    def _build(self, a):
+        for i in range(self.N): 
+            j = i + (~i & -~i)
+            if j < self.N:
+                a[j] += a[i]
+        return a
+
+    def _set_graph(self):
+        self.g_add = [[] for _ in range(self.N+1)]
+        for i in reversed(range(self.N)):
+            j = i + (~i & -~i)
+            self.g_add[i].append(i)
+            if j < self.N:
+                self.g_add[i].extend(self.g_add[j])
+        self.g_sum = [[] for _ in range(self.N+1)]
+        for i in range(self.N):
+            j = i - (~i & -~i)
+            if j >= 0:
+                self.g_sum[i].extend(self.g_sum[j])
+            self.g_sum[i].append(i)
+
     def __len__(self):
-        return self.bit0.N
+        return self.N
  
     def __getitem__(self, i):
         return self.sum(i+1) - self.sum(i)
+
+    def __setitem__(self, i, v):
+        return self.add(i, v-self[i])
  
     def sum(self, r):
         """
@@ -32,75 +78,42 @@ class BIT():
         v : int
             v = a[0] + a[1] + ... + a[r-1]
         """
-        a = self.bit0.sum(r)
-        b = self.bit1.sum(r)
-        v = a + b*r
+        return self._sum(self.a, r) + r * self._sum(self.b, r)
+
+    def _sum(self, bit, r):
+        v = 0
+        for i in self.g_sum[r-1]:
+            v += bit[i]
         return v
- 
-    def rsum(self, l, r):
-        return self.sum(r) - self.sum(l)
- 
-    def radd(self, r, v):
-        """
-        a[0:r] += v
-        """
+
+    def range_add(self, r, v):
+        """a[0:r] += v"""
         if r < self.N:
-            self.bit0.add(i=r, v=v*r)
-            self.bit1.add(i=r, v=-v)
-        self.bit1.add(i=0, v=v)
+            self._add(self.a, i=r, v=v*r)
+            self._add(self.b, i=r, v=-v)
+        self._add(self.b, i=0, v=v)
+
+    def add(self, i, v):
+        """a[i] += v"""
+        self._add(self.a, i, v)
+
+    def _add(self, bit, i, v):
+        for i in self.g_add[i]:
+            bit[i] += v
         
     def tolist(self):
         x = [self.sum(i) for i in range(self.N+1)]
         return [x1-x0 for x0, x1 in zip(x[:-1], x[1:])]
- 
- 
-class BasicBIT():
- 
-    def __init__(self, a=None, n=None, v=None):
-        if a is None:
-            self.a = [v]*n
-            self.N = n
-            self.K = self.N.bit_length()+1
-        else:
-            self.a = a
-            self.N = len(a)
-            self.K = self.N.bit_length()+1
-            self._build()
- 
-    def _build(self):
-        for i in range(self.N):
-            for k in range(self.K):
-                if (i>>k)&1 == 0:
-                    break
-            j = i + (1<<k)
-            if j < self.N:
-                self.a[j] += self.a[i]
- 
-    def sum(self, r):
-        """
-        Return:
-        -------
-        v : int
-            v = a[0] + a[1] + ... + a[r-1]
-        """
-        i = r-1
-        v = 0
-        for k in range(self.K):
-            if i < 0:
-                break
-            if (i>>k)&1 == 0:
-                v += self.a[i]
-                i -= (1<<k)
-        return v
- 
-    def add(self, i, v):
-        for k in range(self.K):
-            if (i>>k)&1 == 0:
-                self.a[i] += v
-                i += (1<<k)
-            if i >= self.N:
-                break
 
+    # ------------------------------------------------------------------------
+    # Use these methods when BIT doesn't require Range Update Query (RUQ)
+    def _asum(self, r):
+        """sum of a[0] + a[1] + ... + a[r-1] when `ruq` is False."""
+        return self._sum(self.a, r)
+
+    def _range_add(self, *args):
+        raise NotImplementedError(
+            "`range_add()` is not defined when `ruq` is False.")
 
 # -----------------------------------------
 # Application
@@ -119,7 +132,7 @@ def count_inversion(a):
 
     cnt = 0
     r_max = max(d.values())+1
-    bit = BasicBIT(n=r_max, v=0)
+    bit = BinaryIndexedTree(n=r_max, v=0, ruq=False)
     for i, ai in enumerate(a):
         cnt += i - bit.sum(r=d[ai]+1)
         bit.add(i=d[ai], v=1)
