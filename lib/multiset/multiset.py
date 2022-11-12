@@ -154,6 +154,22 @@ class SortedMultiset():
             self.size += 1
             self.sizes[0] += 1
         return
+
+    def append(self, x):
+        """append `x` regardless of existance of `x` in multiset. O(1)"""
+        if self:
+            i = len(self.a) - 1
+            self.a[i].append(x)
+            self.size += 1
+            self.sizes[i//self.W] += 1
+            if len(self.a[i]) > self.mc<<1:
+                self._average()
+                self._rebuild()
+        else:
+            self.a.append([x])
+            self.size += 1
+            self.sizes[0] += 1
+
     
     def pop(self, index=-1):
         """O(N^0.5)"""
@@ -197,7 +213,13 @@ class SortedMultiset():
 
     def count(self, x):
         """O(log N + N^0.25)"""
-        return self.upper_bound(x) - self.lower_bound(x)
+        high = self.upper_bound(x)
+        if high is None:
+            high = len(self)
+        low = self.lower_bound(x)
+        if low is None:
+            low = len(self)
+        return  high - low
 
     def gt(self, x):
         """O(log N)"""
@@ -329,23 +351,3 @@ class SortedMultiset():
             sm.insert(x)
         return cnt
 
-    @classmethod
-    def next_permutation(cls, a, reverse=False):
-        """
-        reverse : bool
-            [False] next_permutation
-            [True ] prev_permutation
-        """
-        sm = cls()
-        sm.ope = sm.lt if reverse else sm.gt
-        while a:
-            x = a.pop()
-            sm.insert(x)
-            r = sm.ope(x)
-            if r is not None:
-                a.append(r)
-                sm.discard(r)
-                b = sm.flatten()
-                if reverse:
-                    b = b[::-1]
-                return a + b
