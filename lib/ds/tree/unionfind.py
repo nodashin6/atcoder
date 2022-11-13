@@ -1,41 +1,37 @@
+from collections import defaultdict
 class UnionFind():
     """
     Parameters:
     n : int
-        size of list
+        number of nodes
     parents : int
         the parents of i-th node is `parents[i]`.
     """
 
-    def __init__(self, n, kind='auto'):
+    def __init__(self, n):
         """
-        kind : str
-            [left] parent of x <- parent of y
-            [auto] compare the size of group of x and y  
+        n : int
+            number of nodes
         """
         self.n = n
-        self.parents = [-1]*n
+        self.nodes = set(range(n))
+        self.parents = [-1]*self.n
         self._parents_set = set(range(n))
-        swap_methods = {
-            'auto': self._swap_auto,
-            'left': self._id}
-        self.swap = swap_methods[kind]
-    
-    def _swap_auto(self, x, y):
-        if self.parents[x] > self.parents[y]:
-            x, y = y, x
-        return x, y
-
-    def _id(self, *args):
-        return args
+        return
 
     def unite(self, x, y):
-        if self.same(x, y):
-            return
-        x, y = self.swap(self.find(x), self.find(y))
-        self.parents[x] += self.parents[y]
-        self.parents[y] = x
-        self._parents_set.remove(y)
+        x = self.find(x)
+        y = self.find(y)
+        if x != y:
+            self.parents[x] += self.parents[y]
+            self.parents[y] = x
+            self._parents_set.remove(y)
+        return
+
+    def _find(self, x):
+        while self.parents[x] > -1:
+            x = self.parents[x]
+        return x
 
     def find(self, x):
         dq = []
@@ -56,7 +52,13 @@ class UnionFind():
         return self._parents_set
 
     def get_parents_size(self):
-        return len(self._parents_set)
+        return len(self.get_parents())
+
+    def get_members(self):
+        members = {x: set([]) for x in self.get_parents()}
+        for x in self.nodes:
+            members[self.find(x)].add(x)
+        return members
 
     @classmethod
     def kruskal(cls, n, edges, inf=1<<62):
@@ -91,3 +93,30 @@ class UnionFind():
             return uf.cost
         else:
             return inf
+
+    @classmethod
+    def with_defaultdict(cls):
+
+        class UnionFindWithDefaultDict(cls):
+
+            def __init__(self):
+                super().__init__(n=0)
+                self.parents = defaultdict(lambda: -1)
+                funcs = ['_find', 'find']
+                for func in funcs:
+                    exec(f"self.{func} = self.check_existance(self.{func})")
+
+            def check_existance(self, func):
+                def inner_func(*args):
+                    for x in args:
+                        if x not in self.nodes:
+                            self.add_node(x)
+                    return func(*args)
+                return inner_func
+
+            def add_node(self, x):
+                self.n += 1
+                self.nodes.add(x)
+                self._parents_set.add(x)
+
+        return UnionFindWithDefaultDict()
