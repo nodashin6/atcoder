@@ -27,7 +27,7 @@ class SortedMultiset():
     Processing Time
     ---------------
     condition: 
-        insert only
+        insert random integers
     N       Time
     2*10^5  <0.2 sec
     5*10^5  <0.5 sec
@@ -72,8 +72,9 @@ class SortedMultiset():
         n = len(self.a)
         self.W = max(2, math.floor(math.sqrt(n)))
         self.H = max(1, math.ceil(n/self.W))
-        self.mc = max(256, n)
-        self.mm = self.mc >> 1
+        self.m2 = max(256, n)
+        self.m4 = self.m2 << 1
+        self.m1 = self.m2 >> 1
         return 
 
     def _build(self, a):
@@ -101,7 +102,7 @@ class SortedMultiset():
     def _merge(self):
         i = 0
         while i+1 < len(self.a):
-            if len(self.a[i]) + len(self.a[i+1]) < self.mm:
+            if len(self.a[i]) + len(self.a[i+1]) < self.m1:
                 self.a[i].extend(self.a.pop(i+1))
                 self.cnt_merge += 1
                 continue
@@ -111,65 +112,54 @@ class SortedMultiset():
     def _average(self):
         i = 0
         while i < len(self.a):
-            if len(self.a[i]) > self.mc:
-                self.a.insert(i+1, self.a[i][self.mm:])
-                del self.a[i][self.mm:]
-                i += 1
-                continue
+            if len(self.a[i]) > self.m2:
+                self.a.insert(i+1, self.a[i][self.m1:])
+                del self.a[i][self.m1:]
             i += 1
         return
 
     def add(self, x):
         """insert `x` if `x` doesn't exist in multiset. O(log N + N^0.5)"""
-        if self:
-            i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
-            j = bisect.bisect_left(self.a[i], x)
-            if j < len(self.a[i]) and self.a[i][j] == x:
-                return
-            else:
-                self.a[i].insert(j, x)
-                self.size += 1
-                self.sizes[i//self.W] += 1
-                if len(self.a[i]) > self.mc<<1:
-                    self._average()
-                    self._rebuild()
-        else:
-            self.a.append([x])
-            self.size += 1
-            self.sizes[0] += 1
-        return
+        if x not in self:
+            self.insert(x)
 
     def insert(self, x):
         """insert `x` regardless of existance of `x` in multiset. O(log N + N^0.5)"""
         if self:
             i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
-            bisect.insort(self.a[i], x)
-            self.size += 1
-            self.sizes[i//self.W] += 1
-            if len(self.a[i]) > self.mc<<1:
-                self._average()
-                self._rebuild()
         else:
-            self.a.append([x])
-            self.size += 1
-            self.sizes[0] += 1
+            self.a = [[]]
+            i = 0
+        bisect.insort(self.a[i], x)
+        self._countup_size(i)
         return
 
     def append(self, x):
         """append `x` regardless of existance of `x` in multiset. O(1)"""
         if self:
             i = len(self.a) - 1
-            self.a[i].append(x)
-            self.size += 1
-            self.sizes[i//self.W] += 1
-            if len(self.a[i]) > self.mc<<1:
-                self._average()
-                self._rebuild()
         else:
-            self.a.append([x])
-            self.size += 1
-            self.sizes[0] += 1
+            self.a = [[]]
+            i = 0
+        self.a[i].append(x)
+        self._countup_size(i)
 
+    def appendleft(self, x):
+        """appendleft `x` regardless of existance of `x` in multiset. O(N^0.5)"""
+        if self:
+            i = 0
+        else:
+            self.a = [[]]
+            i = 0
+        self.a[i].insert(0, x)
+        self._countup_size(i)
+
+    def _countup_size(self, i):
+        self.size += 1
+        self.sizes[i//self.W] += 1
+        if len(self.a[i]) > self.m4:
+            self._average()
+            self._rebuild()
     
     def pop(self, index=-1):
         """O(N^0.5)"""
@@ -302,6 +292,12 @@ class SortedMultiset():
     def tolist(self):
         return [bucket.copy() for bucket in self.a]
 
+    def min(self):
+        return self.a[0][0] if self else None
+
+    def max(self):
+        return self.a[-1][-1] if self else None
+
     def __len__(self):
         return self.size
 
@@ -333,6 +329,30 @@ class SortedMultiset():
     @classmethod
     def count_inversion(cls, a, count_duplicate=False, inf=1<<62):
         """
+        count inversion in numbers.
+
+        Example
+        -------
+        >>>a = [3, 2, 2, 1]
+        >>>SortedMultiset.count_inversion(a)
+        5
+
+          3    a[0] > (a[1], a[2], a[3])
+        + 1    a[1] > (a[3])
+        + 1    a[2] > (a[3])
+        -------------------
+        = 5
+
+        >>>a = [3, 2, 2, 1]
+        >>>SortedMultiset.count_inversion(a, count_duplicate=True)
+        6
+
+          3    a[0] >= (a[1], a[2], a[3])
+        + 2    a[1] >= (a[2], a[3])
+        + 1    a[2] >= (a[3])
+        -------------------
+        = 6
+
         Processing Time
         ---------------
         conditions
@@ -343,11 +363,10 @@ class SortedMultiset():
         1*10^6  ~1.6 sec
         ***with PyPy3 on AtCoder***
         """
-        cls.ope = cls.lower_bound if count_duplicate else cls.upper_bound
         sm = cls(a=[-inf])
+        sm.ope = sm.lower_bound if count_duplicate else sm.upper_bound
         cnt = 0
         for i, x in enumerate(a):
             cnt += len(sm) - sm.ope(x)
             sm.insert(x)
         return cnt
-
