@@ -15,7 +15,7 @@ bucket indexのイテレーションに $\sqrt[4]{N}$ ごとにスキップ接�
 ### 1-1. スキップ接続
 下のブロックにあるSortedMultisetでindex 44の要素にアクセスする際は，  
 bucket index 0 からスタートして，bucket_index 8 を探すために8回のイテレーションが必要です。  
-しかし，bucket index 0, 3, 6 に対し，スキップ接続がされているので，bucket_index 0->3->6->7->8の順に移動できます。  
+しかし，bucket index 0, 3, 6 に対し，スキップ接続を図ることので，bucket_index 0->3->6->7->8の順に移動できます。  
 結果として，最大でも $2 \times \sqrt[4]{N}$ 回のイテレーションでbucket_indexを探すことができます。
 
 ```
@@ -50,7 +50,7 @@ randomな整数を $N$ 個入れたときの num_bucket と bucket_size
 |$5\times 10^6$|      4134|     1209.5|
 
 ### 1-3. 短所
-長所以外。
+長所以外。とくにコードが多い。
 
 <hr>
 
@@ -60,7 +60,8 @@ randomな整数を $N$ 個入れたときの num_bucket と bucket_size
 |getitem|$O(\sqrt[4]{N})$|
 |add|$O(\sqrt{N})$|
 |insert|$O(\sqrt{N})$|
-|append, appendleft| $O(\sqrt{N})$|
+|append| $O(1)$|
+|appendleft| $O(\sqrt{N})$|
 |lower_bound, upper_bound|$O(\sqrt[4]{N} + \log N)$|
 |count|$O(\sqrt[4]{N} + \log N)$|
 |ge, gt, le, lt|$O(\log N)$|
@@ -70,16 +71,40 @@ randomな整数を $N$ 個入れたときの num_bucket と bucket_size
 
 <hr>
 
-## 3. 拡張メソッド
+## 3. メソッド
+- `add`
+- `insert`
+- `append`
+- `appendleft`
+- `lower_bound`
+- `upper_bound`
+- `count`
+- `ge`
+- `gt`
+- `le`
+- `lt`
+- `pop`
+- `popleft`
+- `discard`
+- `flatten`
+
+
+<hr>
+
+## 4. クラスメソッド
+- `cls.count_inversion(a=[], count_duplicate=False) -> int`  
+転倒数を数えます。BinaryIndexedTree で数えるより遅い気がします。
+`count_duplicate=True` では，全く同じ値でも転倒数として扱います。
+
 - `cls.with_bitmask(a=[], base=30) -> SortedMultiset`  
-長さ2の配列を要素としてSortedMultisetに入れたいということは良くあります。
+長さ2の配列を要素としてSortedMultisetに入れたいということは非常によくあります。
 要素が全てint型で長さが2であれば，bitmaskした`int`型でデータを保持することが可能です。
 ユーザーはあたかも内部で配列をそのまま保持しているかのように，要素の追加，削除，検索ができます。
 
 <hr>
 
-## 4. 内部の処理について
-### 4-1. バケット分割の仕組み
+## 5. 内部の処理について
+### 5-1. バケット分割の仕組み
 SortedMultiset内の全要素数 $N$ に関連して，内部に3つの閾値 $M_1, M_2, M_4$ があり，以下の関係性をを満たします。
 $$M_1 = \displaystyle \frac{M_2}{2},\space M_2 = \displaystyle \frac{M_4}{2},\space M_2 \sim \sqrt{N}$$
 $M_2$ は望ましいバケットサイズであり，その2倍にあたる $M_4$ は大きすぎるバケット，逆に半分の $M_1$ は少ないバケットとなります。
@@ -106,7 +131,7 @@ SortedMultiset(
 ```
 
 
-### 4-2. バケットの結合
+### 5-2. バケットの結合
 各バケットから一様に要素を削除していくと，バケット数に比べてバケットサイズが小さいという現象が発生します。バケットの要素がゼロになる度に スキップ接続のためのバケットサイズの計算処理が必要になるため，不用意にバケット数が多くなることは望ましくありません。そのため，一定回数の再構築が行われるとバケットの結合処理が発生します。これは隣接する2つのバケットサイズの和が $M_1$ 未満であるとき，バケットを1つに結合する処理です。
 
 例) $M_1 = 6$ のとき，バケットサイズがそれぞれ(1, 1, 2, 2, 3, 5, ...)である以下のSortedMultisetは，バケットサイズ (4, 5, 5, ...) へ結合されます。
