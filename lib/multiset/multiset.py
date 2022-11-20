@@ -5,10 +5,9 @@ class SortedMultiset():
     Methods
     -------
     insert(x)
-        insert value with allowing duplicates.
+        Insert value with allowing duplicates.
     add(x)
-        Insert value if `x` is not in set.
-        Checking the exsit of `x` makes `add` more costly than `insert`.
+        Insert value if `x` is not in multiset.
     lower_bound(x)
         Returns an index of the first element in the range which does not 
         compare less than `x`.
@@ -22,17 +21,7 @@ class SortedMultiset():
     count(x):
         Returns the number of times the specified item appears in the list.
     flatten():
-        Convert 2-d multiset to 1-d list. It's like np.arrray.ravel() or sum(seq, []).
-
-    Processing Time
-    ---------------
-    condition: 
-        insert random integers
-    N       Time
-    2*10^5  <0.2 sec
-    5*10^5  <0.5 sec
-    1*10^6  <1.0 sec
-    ***with PyPy3 on AtCoder***
+        Convert 2-d multiset to 1-d list. It's like numpy.arrray.ravel() or sum(seq, []).
 
     Problems
     --------
@@ -43,11 +32,15 @@ class SortedMultiset():
     - ABC261F: https://atcoder.jp/contests/abc261/submissions/36182408
     [3] using as variable heap deque
     - ABC267E: https://atcoder.jp/contests/abc267/submissions/36182517
+
+    See Also
+    --------
+    https://github.com/nodashin6/atcoder/blob/main/docs/multiset/multiset.md
     """
 
     def __init__(self, a=[]):
         """
-        `a` must be 1-D list.
+        `a` must be 1-d list.
         """
         if a:
             self._build(a)
@@ -366,7 +359,7 @@ class SortedMultiset():
     # ----------------------------------------------------------------------
     # class methods
     @classmethod
-    def count_inversion(cls, a=[], count_duplicate=False, inf=1<<62):
+    def count_inversion(cls, a=[], count_duplicate=False):
         """
         count inversion in numbers.
 
@@ -402,8 +395,8 @@ class SortedMultiset():
         1*10^6  ~1.6 sec
         ***with PyPy3 on AtCoder***
         """
-        sm = cls(a=[-inf])
-        sm.ope = sm.lower_bound if count_duplicate else sm.upper_bound
+        sm = cls(a=[])
+        sm.ope = sm._lower_bound if count_duplicate else sm._upper_bound
         cnt = 0
         for i, x in enumerate(a):
             cnt += len(sm) - sm.ope(x)

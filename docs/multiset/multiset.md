@@ -155,3 +155,93 @@ SortedMultiset(
 )
 ```
 
+<hr>
+
+## 6. 処理時間
+- 環境: PyPy (7.3.0, on AtCoder)
+- テストコード: 下記記載
+
+|functions|$2\times 10^5$|$5\times 10^5$|
+|:-------------:|:---------:|:---------:|
+|insert         |  0.154 sec|  0.351 sec|
+|loc[0]         |  0.006 sec|  0.006 sec|
+|loc[i]         |  0.059 sec|  0.109 sec|
+|loc[-1]        |  0.048 sec|  0.101 sec|
+|lower_bound    |  0.135 sec|  0.322 sec|
+|upper_bound    |  0.216 sec|  0.629 sec|
+|count          |  0.324 sec|  0.904 sec|
+|containts      |  0.149 sec|  0.365 sec|
+|gt             |  0.153 sec|  0.384 sec|
+|ge             |  0.159 sec|  0.406 sec|
+|lt             |  0.164 sec|  0.417 sec|
+|le             |  0.175 sec|  0.446 sec|
+|dicard         |  0.168 sec|  0.399 sec|
+|popleft        |  0.037 sec|  0.082 sec|
+
+
+```python
+import math
+import bisect
+class SortedMultiset():
+    ...
+
+
+import time
+from contextlib import contextmanager
+@contextmanager
+def timer(s=''):
+    t0 = time.time()
+    yield
+    print(f'{time.time() - t0:.3f} sec    {s}'.rstrip())
+
+import random
+random.seed(0)
+n = 2*10**5
+x = [random.randint(0,10**9) for _ in range(n)]
+
+sm = SortedMultiset()
+with timer('insert'):
+    for xi in x:
+        sm.insert(xi)
+with timer('loc[0]'):
+    for xi in x:
+        sm[0]
+with timer('loc[i]'):
+    for i in range(n):
+        sm[i]
+with timer('loc[-1]'):
+    for xi in x:
+        sm[-1]
+with timer('lower_bound'):
+    for xi in x:
+        sm.lower_bound(xi)
+with timer('upper_bound'):
+    for xi in x:
+        sm.upper_bound(xi)
+with timer('count'):
+    for xi in x:
+        sm.count(xi)
+with timer('__containts__'):
+    for xi in x:
+        xi in sm
+with timer('gt'):
+    for xi in x:
+        sm.gt(xi)
+with timer('ge'):
+    for xi in x:
+        sm.ge(xi)
+with timer('lt'):
+    for xi in x:
+        sm.lt(xi)
+with timer('le'):
+    for xi in x:
+        sm.le(xi)
+with timer('dicard'):
+    for xi in x:
+        sm.discard(xi)
+sm = SortedMultiset()
+[sm.insert(xi) for xi in x]
+with timer('popleft'):
+    while sm:
+        sm.popleft()
+```
