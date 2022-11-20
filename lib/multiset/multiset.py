@@ -212,26 +212,37 @@ class SortedMultiset():
 
     def lower_bound(self, x):
         """O(log N + N^0.25)"""
-        if self: return self._lower_bound(x)
+        index = self._lower_bound(x)
+        if index < len(self):
+            return index
+        else:
+            return None
 
     def _lower_bound(self, x):
-        i, index = self._iterate_row_index(lambda bucket: bucket[0] < x)
-        return index + bisect.bisect_left(self.a[i], x)
+        if self:
+            i, index = self._iterate_row_index(lambda bucket: bucket[0] < x)
+            return index + bisect.bisect_left(self.a[i], x)
+        else:
+            return 0
 
     def upper_bound(self, x):
         """O(log N + N^0.25)"""
-        if self: return self._upper_bound(x)
+        index = self._upper_bound(x)
+        if index < len(self):
+            return index
+        else:
+            return None
 
     def _upper_bound(self, x):
-        i, index = self._iterate_row_index(lambda bucket: bucket[0] <= x)
-        return index + bisect.bisect_right(self.a[i], x)
+        if self:
+            i, index = self._iterate_row_index(lambda bucket: bucket[0] <= x)
+            return index + bisect.bisect_right(self.a[i], x)
+        else:
+            return 0
 
     def count(self, x):
         """O(log N + N^0.25)"""
-        if self:
-            return self._upper_bound(x) - self._lower_bound(x)
-        else:
-            return 0
+        return self._upper_bound(x) - self._lower_bound(x)
 
     def gt(self, x):
         """O(log N)"""
@@ -355,7 +366,7 @@ class SortedMultiset():
     # ----------------------------------------------------------------------
     # class methods
     @classmethod
-    def count_inversion(cls, a, count_duplicate=False, inf=1<<62):
+    def count_inversion(cls, a=[], count_duplicate=False, inf=1<<62):
         """
         count inversion in numbers.
 
