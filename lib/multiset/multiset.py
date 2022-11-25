@@ -38,6 +38,7 @@ class SortedMultiset():
     https://github.com/nodashin6/atcoder/blob/main/docs/multiset/multiset.md
     """
 
+    BUCKETSIZE = 256
     def __init__(self, a=[]):
         """
         `a` must be 1-d list.
@@ -47,14 +48,14 @@ class SortedMultiset():
         else:
             self.a = []
             self.size = 0
-            self.sizes = [0]
-            self._calc_parameter()
+        self._calc_parameter()
+        self._calc_sizes()
         # stats
         self.cnt_rebuild = 0
         self.cnt_merge = 0
         self.cnt_average = 0
 
-    shape = property(doc="""return (num_bucket, bucktsize (avg))""")
+    shape = property(doc="""return (num_bucket, bucket_size (avg))""")
     @shape.getter
     def shape(self):
         num_bucket = len(self.a)
@@ -65,8 +66,7 @@ class SortedMultiset():
         n = len(self.a)
         self.Wb = n.bit_length()>>1
         self.W = 1 << self.Wb
-        self.H = max(1, math.ceil(n/self.W))
-        self.m2 = max(256, n>>1)
+        self.m2 = max(self.BUCKETSIZE, n>>1)
         self.m4 = self.m2 << 1
         self.m1 = self.m2 >> 1
         return 
@@ -81,8 +81,6 @@ class SortedMultiset():
         self.size = len(a)
         K = max(128, math.ceil(math.sqrt(self.size)*0.7))
         self.a = [a[i*K:(i+1)*K] for i in range(-(-len(a)//K))]
-        self._calc_parameter()
-        self.sizes = self._calc_sizes()
         return
 
     def _rebuild(self):
@@ -90,14 +88,14 @@ class SortedMultiset():
         if self.cnt_rebuild % 100 == 0:
             self._merge()
         self._calc_parameter()
-        self.sizes = self._calc_sizes()
+        self._calc_sizes()
         return
 
     def _calc_sizes(self):
-        sizes = [0] * self.H
+        self.sizes = [0] * max(1, math.ceil(len(self.a)/self.W))
         for i, length in enumerate(map(len, self.a)):
-            sizes[i>>self.Wb] += length
-        return sizes
+            self.sizes[i>>self.Wb] += length
+        return
 
     def _merge(self):
         i = 0
@@ -118,49 +116,50 @@ class SortedMultiset():
             i += 1
         return
 
+    def wrap_insert(func):
+        def inner_func(self, x):
+            if self:
+                func(self, x)
+            else:
+                self.a = [[x]]
+                self._countup_size(0)
+            return
+        return inner_func
+
+    @wrap_insert
     def add(self, x):
         """insert `x` if `x` doesn't exist in multiset. O(log N + N^0.5)"""
-        if self:
-            i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
-            j = bisect.bisect_left(self.a[i], x)
-        else:
-            self.a = [[]]
-            i = 0
-            j = 0
+        i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
+        j = bisect.bisect_left(self.a[i], x)
         if j < len(self.a[i]) and self.a[i][j] == x:
             return
         self.a[i].insert(j, x)
         self._countup_size(i)
         return
 
+    @wrap_insert
     def insert(self, x):
         """insert `x` regardless of existance of `x` in multiset. O(log N + N^0.5)"""
-        if self:
-            i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
-        else:
-            self.a = [[]]
-            i = 0
+        i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
         bisect.insort(self.a[i], x)
         self._countup_size(i)
         return
 
+    @wrap_insert
     def append(self, x):
         """append `x` regardless of existance of `x` in multiset. O(1)"""
-        if self:
-            i = len(self.a) - 1
-        else:
-            self.a = [[]]
-            i = 0
+        i = len(self.a) - 1
         self.a[i].append(x)
         self._countup_size(i)
+        return
 
+    @wrap_insert
     def appendleft(self, x):
         """appendleft `x` regardless of existance of `x` in multiset. O(N^0.5)"""
-        if not self:
-            self.a = [[]]
         i = 0
         self.a[i].insert(0, x)
         self._countup_size(i)
+        return
 
     def _countup_size(self, i):
         self.size += 1
@@ -203,13 +202,19 @@ class SortedMultiset():
             self.a[i].pop(j)
             self._countdown_size(i)
 
+    def wrap_bound(func):
+        def inner_func(self, x):
+            index = func(self, x)
+            if index < len(self):
+                return index
+            else:
+                return None
+        return inner_func
+
+    @wrap_bound
     def lower_bound(self, x):
         """O(log N + N^0.25)"""
-        index = self._lower_bound(x)
-        if index < len(self):
-            return index
-        else:
-            return None
+        return self._lower_bound(x)
 
     def _lower_bound(self, x):
         if self:
@@ -218,13 +223,10 @@ class SortedMultiset():
         else:
             return 0
 
+    @wrap_bound
     def upper_bound(self, x):
         """O(log N + N^0.25)"""
-        index = self._upper_bound(x)
-        if index < len(self):
-            return index
-        else:
-            return None
+        return self._upper_bound(x)
 
     def _upper_bound(self, x):
         if self:
@@ -268,7 +270,7 @@ class SortedMultiset():
         i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
         if self.a[i][0] <= x:
             return self.a[i][bisect.bisect_right(self.a[i], x) - 1]
-
+        
     def _loc(self, index):
         """O(N^0.25)"""
         i = 0
@@ -281,10 +283,10 @@ class SortedMultiset():
             i += 1
         return i, j
 
-    def _bisect_row_index(self, func):
-        l, r = 0, len(self.a)
+    def _bisect_row_index(self, func, l=0):
+        l, r = l, len(self.a)
         while r-l > 1:
-            m = (r+l)//2
+            m = (r+l)>>1
             if func(self.a[m]):
                 l = m
             else:
