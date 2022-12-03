@@ -357,6 +357,14 @@ class SortedMultiset():
 
     def __repr__(self):
         return f"SortedMultiset({self.flatten()})"
+
+    def __iter__(self):
+        return self._iter()
+
+    def _iter(self):
+        for bucket in self.a:
+            for x in bucket:
+                yield x
         
     # ----------------------------------------------------------------------
     # class methods
@@ -422,12 +430,20 @@ class SortedMultiset():
                 return x
             return inner_func
 
+        def wrap_yield(self, class_func):
+            def inner_func(*args):
+                for v in class_func(*args):
+                    x = [v>>base, v-((v>>base)<<base)]
+                    yield x
+            return inner_func
+
         b = [None]*len(a)
         for i in range(len(a)):
             b[i] = (a[i][0]<<base) + a[i][1]
         sm = SortedMultiset(a=b)
         sm.wrap_input = wrap_input
         sm.wrap_output = wrap_output
+        sm.wrap_yield = wrap_yield
         input_funcs = [
             'add', 'insert', 'discard', '_contains', 'count', 
             'ge', 'gt', 'le', 'lt', 'lower_bound', 'upper_bound']
@@ -437,4 +453,8 @@ class SortedMultiset():
             'pop', 'popleft', '_getitem']
         for output_func in output_funcs:
             exec(f"sm.{output_func} = sm.wrap_output(sm, sm.{output_func})")
+        gen_funcs = [
+            '_iter']
+        for gen_func in gen_funcs:
+            exec(f"sm.{gen_func} = sm.wrap_yield(sm, sm.{gen_func})")
         return sm
