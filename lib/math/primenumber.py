@@ -80,16 +80,16 @@ def primefactorization(x):
     10^18   10.0 sec
     ***with PyPy3 on AtCoder**
     """
-    foctors = {}
+    factors = {}
     for i in range(2, int(x**0.5 + 2)):
         if x%i == 0:
-            foctors[i] = 0
+            factors[i] = 0
         while x%i == 0:
             x //= i
-            foctors[i] += 1
-        if x > 1:
-            foctors[x] = 1
-    return foctors
+            factors[i] += 1
+    if x > 1:
+        factors[x] = 1
+    return factors
 
 
 from collections import defaultdict

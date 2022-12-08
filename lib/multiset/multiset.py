@@ -194,6 +194,14 @@ class SortedMultiset():
         self._countdown_size(0)
         return x
 
+    def popright(self):
+        """O(N^0.5)"""
+        if not self: raise IndexError("pop from empty list")
+        i = len(self.a) - 1
+        x = self.a[i].pop()
+        self._countdown_size(i)
+        return x
+
     def discard(self, x):
         """O(log N + N^0.5)"""
         tmp = self._find(x)
@@ -450,7 +458,7 @@ class SortedMultiset():
         for input_func in input_funcs:
             exec(f"sm.{input_func} = sm.wrap_input(sm, sm.{input_func})")
         output_funcs = [
-            'pop', 'popleft', '_getitem']
+            'pop', 'popleft', 'popright', '_getitem']
         for output_func in output_funcs:
             exec(f"sm.{output_func} = sm.wrap_output(sm, sm.{output_func})")
         gen_funcs = [
