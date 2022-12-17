@@ -195,7 +195,7 @@ class SortedMultiset():
         return x
 
     def popright(self):
-        """O(N^0.5)"""
+        """O(1)"""
         if not self: raise IndexError("pop from empty list")
         i = len(self.a) - 1
         x = self.a[i].pop()
