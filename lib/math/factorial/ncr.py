@@ -40,26 +40,25 @@ class MODnCr():
             self.fac1.append(self.fac1[-1] * self.inv0[-1] % self.P)
         self.n = end-1
 
-    def factorial(self, i):
-        return self.fac0[i]
+    def factorial(self, n):
+        return self.fac0[n]
 
-    def invfactorial(self, i):
-        return self.fac1[i]
+    def invfactorial(self, n):
+        return self.fac1[n]
 
-    def inverse(self, v):
+    def inverse(self, n):
         """
         a^(-1) = -(P%a)^(-1) * (P//a)    (mod P)
         """
-        if v > 1:
-            return - self.inv0[self.P%v] * (self.P//v) % self.P
+        if n > 1:
+            return - self.inv0[self.P%n] * (self.P//n) % self.P
         else:
-            return self.inv0[v]
+            return self.inv0[n]
 
-
-
-def permutation(n, k, mod=1_000_000_007):
-    v = 1
-    for i in reversed(range(n-k+1, n+1)):
-        v *= i
-        v %= mod
-    return v
+    def catalan(self, n):
+        """
+        C(n) = 1/(n+1) * (2n!)/(n!n!)
+        """
+        if 2*n > self.n:
+            self._setup(start=self.n+1, end=2*n+1)
+        return self(2*n, n) * self.inverse(n+1)

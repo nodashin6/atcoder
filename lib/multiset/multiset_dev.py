@@ -47,7 +47,7 @@ class SortedMultisetDev():
 
     def _calc_parameter(self):
         n = len(self.a)
-        self.skip_bit = n.bit_length()>>1
+        self.skip_bit = n.bit_length() >> 1
         self.skip_len = 1 << self.skip_bit
         self.m2 = max(self.BUCKETSIZE, n>>1)
         self.m4 = self.m2 << 1

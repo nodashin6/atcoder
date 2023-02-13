@@ -12,7 +12,7 @@ class LazySegmentTree(Sequence):
         self.n = self.m + len(a)
 
         self.a = [e] * (self.m*2 + 1)
-        self.E = e
+        self.e = e
         self.ope = ope
         self.mapping = mapping
         
@@ -22,8 +22,6 @@ class LazySegmentTree(Sequence):
         
         self.a[self.m:self.m+len(a)] = a
         self._build()
-
-        # self.forsetattr = self.ForSetAttr()
         return
         
     def _build(self):
@@ -67,20 +65,16 @@ class LazySegmentTree(Sequence):
         return dq
 
     def _range_apply(self, l, r, f):
-        # print(f'[range_apply(l={l}, r={r})]')
         while l < r:
             if ~-l&1:
-                # print(f'[apply]: l={l}')
                 self._iapply(l, f)
                 l += 1
             if ~-r&1:
-                # print(f'[apply]: r={r-1}')
                 self._iapply(r-1, f)
             l = self._U(l)
             r = self._U(r)
 
     def _iapply(self, i, f):
-        # print(f'i={i}, a[i]={self.a[i]}, f={f}')
         self.a[i] = self.mapping(f, self.a[i])
         if i < self.m:
             self.b[i] = self.compose(f, self.b[i])
@@ -92,12 +86,11 @@ class LazySegmentTree(Sequence):
         return self._range_query(l, r)
 
     def _range_query(self, l, r):
-        v = self.E
+        v = self.e
         while l < r:
             if ~-l&1:
                 v= self.ope(v, self.a[l])
                 l += 1
-                
             if ~-r&1:
                 v= self.ope(v, self.a[r-1])
             l = self._U(l)
@@ -109,6 +102,13 @@ class LazySegmentTree(Sequence):
 
     def __len__(self):
         return self.n
+
+    def tolist(self):
+        for i in range(self.m):
+            self.push(i)
+        for i in reversed(range(self.m)):
+            self.update(i)
+        return self.a[self.m:]
 
 
     # ----------------------------------------------------------------------
@@ -136,9 +136,9 @@ def compose(f, g):
         v = list(f.v)
         v[0] *= g.v[0]
         v[1] = v[1]*g.v[0] + f.v[1]
-        return AppliedFunc(v=(v[0], v[1]))
+        return ApplyFunc(v=(v[0], v[1]))
 
-class AppliedFunc():
+class ApplyFunc():
     def __init__(self, v=(1, 0)):
         self.v = v
     def __call__(self, x):

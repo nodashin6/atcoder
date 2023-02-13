@@ -1,5 +1,3 @@
-## Binary Indexed Tree
-## https://github.com/nodashin6/atcoder/blob/main/ds/tree/binaryindexedtree.py
 class BinaryIndexedTree():
     """
     Methods
@@ -18,11 +16,13 @@ class BinaryIndexedTree():
 
     See Also
     --------
+    source:
+        https://github.com/nodashin6/atcoder/blob/main/ds/tree/binaryindexedtree.py
     about BinaryIndexedTree : 
         https://algo-logic.info/binary-indexed-tree/
     """
  
-    def __init__(self, a=None, n=None, init_v=None, ruq=True):
+    def __init__(self, a=None, n=None, e=None, ruq=True):
         """
         Parameters
         ----------
@@ -34,30 +34,30 @@ class BinaryIndexedTree():
             init_value
         ruq : bool
             `ruq` means Range Update Query (RUQ).
-            If `ruq` is True, BIT can use range_add function 
-            with 1.1~1.4 times cost.
+            If `ruq` is True, `range_add` method is available with 1.1~1.4 times cost.
         """
         if a:
-            self.N = len(a)
+            self.n = len(a)
             self.a = self._build(a.copy())
         else:
-            self.N = n
-            self.a = [init_v]*self.N
+            self.n = n
+            self.a = [e]*self.n
         if ruq:
-            self.b = [0]*self.N
+            self.b = [e]*self.n
         else:
             self.sum = self._asum
             self.range_add = self._range_add
+        self.e = e
 
     def _build(self, a):
-        for i in range(self.N): 
+        for i in range(self.n): 
             j = i + (~i & -~i)
-            if j < self.N:
+            if j < self.n:
                 a[j] += a[i]
         return a
 
     def __len__(self):
-        return self.N
+        return self.n
  
     def __getitem__(self, i):
         return self.sum(i+1) - self.sum(i)
@@ -75,16 +75,16 @@ class BinaryIndexedTree():
         return self._sum(self.a, r) + r * self._sum(self.b, r)
 
     def _sum(self, bit, r):
-        v = 0
+        v = self.e
         i = r-1
         while 0 <= i:
-            v += bit[i]
+            v = v + bit[i]
             i -= (~i & -~i)
         return v
 
     def range_add(self, r, v):
         """a[0:r] += v"""
-        if r < self.N:
+        if r < self.n:
             self._add(self.a, i=r, v=v*r)
             self._add(self.b, i=r, v=-v)
         self._add(self.b, i=0, v=v)
@@ -94,12 +94,12 @@ class BinaryIndexedTree():
         self._add(self.a, i, v)
 
     def _add(self, bit, i, v):
-        while i < self.N:
-            bit[i] += v
+        while i < self.n:
+            bit[i] = bit[i] + v
             i += ~i & -~i
         
     def tolist(self):
-        x = [self.sum(i) for i in range(self.N+1)]
+        x = [self.sum(i) for i in range(self.n+1)]
         return [x1-x0 for x0, x1 in zip(x[:-1], x[1:])]
 
     # ------------------------------------------------------------------------

@@ -13,14 +13,12 @@ class LazyList(Sequence):
 
         self.a = [e] * (self.m+1)
         self.a[:len(a)] = a
-        self.E = e
+        self.e = e
         self.mapping = mapping
         
         self.b = [idfunc] * self.m
         self.idfunc = idfunc
         self.compose = compose
-
-        # self.forsetattr = self.ForSetAttr()
         return
 
 
@@ -40,14 +38,22 @@ class LazyList(Sequence):
         self._range_apply(l, r, f)
 
     def _iapply(self, i, f):
-        # print(f'i={i}, a[i]={self.a[i]}, f={f}')
         if i < self.m:
             self.b[i] = self.compose(f, self.b[i])
         else:
             self.a[i-self.m] = self.mapping(f, self.a[i-self.m])
 
+    def iquery(self, i):
+        dq = []
+        l = i + self.m
+        while l > 0:
+            l = self._U(l)
+            dq.append(l)
+        for l in reversed(dq):
+            self.push(l)
+        return self.a[i]
+
     def _range_push(self, l, r):
-        # applying old updating.
         dq = set([])
         while l&1:
             l = self._U(l)
@@ -65,14 +71,11 @@ class LazyList(Sequence):
         return dq
 
     def _range_apply(self, l, r, f):
-        # print(f'[range_apply(l={l}, r={r})]')
         while l < r:
             if ~-l&1:
-                # print(f'[apply]: l={l}')
                 self._iapply(l, f)
                 l += 1
             if ~-r&1:
-                # print(f'[apply]: r={r-1}')
                 self._iapply(r-1, f)
             l = self._U(l)
             r = self._U(r)

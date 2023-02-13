@@ -23,16 +23,6 @@ class SortedMultiset():
     flatten():
         Convert 2-d multiset to 1-d list. It's like numpy.arrray.ravel() or sum(seq, []).
 
-    Problems
-    --------
-    [1] SortedMultiset
-    - ABC217D: https://atcoder.jp/contests/abc217/submissions/36182242
-    - ABC245E: https://atcoder.jp/contests/abc245/submissions/36198523
-    [2] count_inversion
-    - ABC261F: https://atcoder.jp/contests/abc261/submissions/36182408
-    [3] using as variable heap deque
-    - ABC267E: https://atcoder.jp/contests/abc267/submissions/36182517
-
     See Also
     --------
     https://github.com/nodashin6/atcoder/blob/main/docs/multiset/multiset.md
