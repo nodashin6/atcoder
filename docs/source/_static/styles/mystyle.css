@@ -1,0 +1,16 @@
+@import "sphinx-book-theme.css";
+
+.bd-main {
+  flex-grow: 1;
+  max-width: 100%;
+}
+
+.bd-main .bd-content .bd-article-container {
+  max-width: 100%;
+}
+
+@media (min-width: 960px) {
+  .bd-page-width {
+    max-width: 128rem;
+  }
+}
