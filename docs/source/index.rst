@@ -17,7 +17,7 @@ Profile
 
 
 *****
-INDEX
+Index
 *****
 .. toctree::
    :maxdepth: 4

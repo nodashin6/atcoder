@@ -3,11 +3,6 @@ AtCoder Beginner Contest
 ########################
 
 
-***
-295
-***
-
-.. toctree::
-   :maxdepth: 1
-   
-   295/a
+- 295
+  
+  - :doc:`./295/a`
