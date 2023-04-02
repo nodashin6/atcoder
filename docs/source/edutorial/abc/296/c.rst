@@ -49,7 +49,7 @@ C - Gap Existence
 
 .. code-block:: python
 
-    N = int(input())
+    N, X = map(int, input().split())
     a_list = list(map(int, input().split()))
     a_set = set(a_list)
 
