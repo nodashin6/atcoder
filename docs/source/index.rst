@@ -24,3 +24,4 @@ Index
 
    edutorial/index.rst
    library/index.rst
+   todo/index.rst
