@@ -59,7 +59,8 @@ DPです。
 コード
 ******
 
-提出コードは `こちら <https://atcoder.jp/contests/abc275/submissions/40791481>`__ から
+提出コードは `こちら <https://atcoder.jp/contests/abc275/submissions/40791481>`__ から。
+
 ``used`` という変数が，直前の行の操作時に :math:`j` を使用したかどうかを意味します。
 
 .. code:: python
