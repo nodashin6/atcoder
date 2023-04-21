@@ -44,7 +44,7 @@ F - Teleporter and Closed off
         k(("k"))
         N(("N"))
 
-        1 ===>|d1j| i
+        1 ===>|d1i| i
         i ===> j
         j ===>|djN| N
         1 -.-> k
