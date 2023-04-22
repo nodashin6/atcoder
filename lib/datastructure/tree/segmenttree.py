@@ -1,4 +1,3 @@
-# https://github.com/nodashin6/atcoder/blob/main/ds/yellow/segmenttree.py
 from collections.abc import Sequence
 class SegmentTree(Sequence):
     """
