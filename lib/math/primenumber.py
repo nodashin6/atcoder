@@ -9,7 +9,7 @@ case3. When you want to factorize all integers below n into prime factors.
     -> Use class `ArrangePrimeFactorization(n)`.
 """
 
-class Erathosthenes():
+class Eratosthenes():
     """
     Parameters:
     -----------

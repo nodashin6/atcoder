@@ -11,11 +11,6 @@ class SegmentTree(Sequence):
         query in range of [l, r) and return aggregated value.
     iprod(l=0, r=None)
         query in range of [l, r) and return index of the values.
-
-    Problems
-    --------
-    [RMQ]
-    ABC267E: URL
     """
 
     def __init__(self, n, e, op):
@@ -99,17 +94,18 @@ class SegmentTree(Sequence):
         r = self.n if r is None else r + self.m
         if l < 0 or self.n < r:
             raise IndexError("Sequence index out of range.")
-        nodes = []
+        lnodes = []
+        rnodes = []
         while r-l > 0:
             if ~l&1:
-                nodes.append(l)
+                lnodes.append(l)
                 l += 1
             if ~r&1:
-                nodes.append(r-1)
+                rnodes.append(r-1)
                 r -= 1
             l = (l-1)>>1
             r = (r-1)>>1
-        return nodes
+        return lnodes + rnodes[::-1]
     
     def _U(self, i): return (i-1) >> 1
     def _L(self, i): return (i<<1) + 1
