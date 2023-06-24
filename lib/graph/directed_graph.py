@@ -11,13 +11,20 @@ class DirectedGraph():
         """
         self.n = n
         self.G = [set([]) for _ in range(self.n)]
-        self.G_rvrs = [set([]) for _ in range(self.n)]
+        self.T = [set([]) for _ in range(self.n)]
         return
 
     def add_edge(self, a, b):
         if b not in self.G[a]:
             self.G[a].add(b)
-            self.G_rvrs[b].add(a)
+            self.T[b].add(a)
+        return
+    
+    def __getitem__(self, index):
+        return self.G[index]
+    
+    def __setitem__(self, index, value):
+        self.G[index] = value
         return
 
     def scc(self):
@@ -58,7 +65,7 @@ class DirectedGraph():
             x = dq.pop()
             if not self.seen[x]:
                 self.seen[x] = 1
-                for y in self.G_rvrs[x]:
+                for y in self.T[x]:
                     if not self.seen[y]:
                         group.add(y)
                         dq.append(y)
