@@ -1,49 +1,45 @@
 import math
-import bisect
+from bisect import bisect_left, bisect_right, insort
+from operator import __le__, __lt__
 class SortedMultiset():
-    """
+    """This is an sorted multiset using skip connection for index referencing.
+    
+    This Python program provides an implementation of a SortedMultiset, 
+    which is an ordered collection (or multiset) of objects in which an object can 
+    occur more than once. A multiset is similar to a set, but allows duplicate elements. 
+    The SortedMultiset class maintains the elements in a sorted order, allowing efficient 
+    operations like addition, removal, and searching of elements.
+
     Methods
     -------
-    insert(x)
-        Insert value with allowing duplicates.
     add(x)
-        Insert value if `x` is not in multiset.
+        Adds an element x to the multiset.
     lower_bound(x)
-        Returns an index of the first element in the range which does not 
-        compare less than `x`.
+        Returns the index of the first element which is not less than `x`.
     upper_bound(x)
-        Returns an index of the first element in the range which
-        compare greater than `x`.
+        Returns the index of the first element which is greater than `x`.
     pop(index):
         Removes and returns the element at the specified index.
     discard(x):
         Removes the first item from the list which matches the specified value.
     count(x):
-        Returns the number of times the specified item appears in the list.
+        Returns the number of times a specified item appears in the list.
     flatten():
-        Convert 2-d multiset to 1-d list. It's like numpy.arrray.ravel() or sum(seq, []).
-
-    See Also
-    --------
-    https://github.com/nodashin6/atcoder/blob/main/docs/multiset/multiset.md
+        Converts a 2-D multiset into a 1-D list.
     """
+    BUCKETSIZE = 256  # Never change this parameter
+    K = (0, 3, 6)     # Never change this parameter. It means skip connection widths are 2^0, 2^3, 2^6.
 
-    BUCKETSIZE = 256
-    def __init__(self, a=[]):
-        """
-        `a` must be 1-d list.
-        """
+    def __init__(self, a=None):
+        """`a` must be 1-d list."""
         if a:
-            self._build(a)
+            self.size = len(a)
+            self.a = self._build_buckets(a)
         else:
-            self.a = []
             self.size = 0
-        self._calc_parameter()
-        self._calc_sizes()
-        # stats
-        self.cnt_rebuild = 0
-        self.cnt_merge = 0
-        self.cnt_average = 0
+            self.a = []
+        self._sizes = [[0], [0], [0]]
+        self._calc_info()
 
     shape = property(doc="""return (num_bucket, bucket_size (avg))""")
     @shape.getter
@@ -52,260 +48,223 @@ class SortedMultiset():
         bucketsize = round(len(self)/len(self.a), 1) if self else 0.0
         return (num_bucket, bucketsize)
 
-    def _calc_parameter(self):
-        n = len(self.a)
-        self.Wb = n.bit_length()>>1
-        self.W = 1 << self.Wb
-        self.m2 = max(self.BUCKETSIZE, n>>1)
-        self.m4 = self.m2 << 1
-        self.m1 = self.m2 >> 1
-        return 
-
-    def _build(self, a):
+    def _build_buckets(self, a):
         for a0, a1 in zip(a[:-1], a[1:]):
-            if a0 <= a1:
-                continue
-            else:
+            if a0 > a1:
                 a = sorted(a)
                 break
-        self.size = len(a)
-        K = max(128, math.ceil(math.sqrt(self.size)*0.7))
-        self.a = [a[i*K:(i+1)*K] for i in range(-(-len(a)//K))]
+        k = max(self.BUCKETSIZE>>1, math.ceil(math.sqrt(self.size)*0.7))
+        return [a[i*k:(i+1)*k] for i in range(-(-len(a)//k))]
+
+    def _calc_info(self):
+        """A Multiset is a collection where the size of elements 
+        within a single bucket ideally falls between `_lo` and `_hi`. 
+        A flag for uniformization (balancing) process is raised 
+        when it exceeds `_excess`.
+        """
+        n = len(self.a)
+        self._hi = max(self.BUCKETSIZE, n>>1)
+        self._excess = self._hi << 1
+        self._lo = self._hi >> 1
+
+        if self:
+            self._sizes[0] = list(map(len, self.a))
+            self._sizes[1] = [sum(self._sizes[0][i:i+8]) for i in range(0, len(self.a), 8)]
+            self._sizes[2] = [sum(self._sizes[1][i:i+8]) for i in range(0, len(self._sizes[1]), 8)]
+            self._mins = [a[0] for a in self.a]
+            self._maxs = [a[-1] for a in self.a]
         return
 
-    def _rebuild(self):
-        self.cnt_rebuild += 1
-        if self.cnt_rebuild % 100 == 0:
-            self._merge()
-        self._calc_parameter()
-        self._calc_sizes()
-        return
-
-    def _calc_sizes(self):
-        self.sizes = [0] * max(1, math.ceil(len(self.a)/self.W))
-        for i, length in enumerate(map(len, self.a)):
-            self.sizes[i>>self.Wb] += length
-        return
-
-    def _merge(self):
-        i = 0
-        while i+1 < len(self.a):
-            if len(self.a[i]) + len(self.a[i+1]) < self.m1:
-                self.a[i].extend(self.a.pop(i+1))
-                self.cnt_merge += 1
-                continue
-            i += 1
-        return 
-
-    def _average(self):
+    def _balance(self):
         i = 0
         while i < len(self.a):
-            if len(self.a[i]) > self.m2:
-                self.a.insert(i+1, self.a[i][self.m1:])
-                del self.a[i][self.m1:]
+            if self._hi < len(self.a[i]):
+                k = len(self.a[i])//self._lo + 1
+                m = math.ceil(len(self.a[i]) / k) - 1
+                for _ in range(k-1):
+                    self.a.insert(i+1, self.a[i][~m:])
+                    del self.a[i][~m:]
+            elif 0 < i and (len(self.a[i-1]) + len(self.a[i])) < self._lo:
+                self.a[i-1].extend(self.a.pop(i))
+                continue
             i += 1
         return
 
-    def wrap_insert(func):
+    def _handle_empty_multiset(func):
         def inner_func(self, x):
             if self:
                 func(self, x)
             else:
                 self.a = [[x]]
-                self._countup_size(0)
+                self.size = 1
+                self._calc_info()
             return
         return inner_func
+    
+    def _update_min_max(self, i):
+        if self.a[i]:
+            self._mins[i] = self.a[i][0]
+            self._maxs[i] = self.a[i][-1]
 
-    @wrap_insert
+    @_handle_empty_multiset
     def add(self, x):
-        """insert `x` if `x` doesn't exist in multiset. O(log N + N^0.5)"""
-        i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
-        j = bisect.bisect_left(self.a[i], x)
-        if j < len(self.a[i]) and self.a[i][j] == x:
-            return
-        self.a[i].insert(j, x)
-        self._countup_size(i)
-        return
-
-    @wrap_insert
-    def insert(self, x):
         """insert `x` regardless of existance of `x` in multiset. O(log N + N^0.5)"""
-        i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
-        bisect.insort(self.a[i], x)
-        self._countup_size(i)
-        return
+        i = max(0, bisect_left(self._mins, x) - 1)
+        insort(self.a[i], x)
+        self._update_min_max(i)
+        self._countup(i)
 
-    @wrap_insert
+    @_handle_empty_multiset
     def append(self, x):
         """append `x` regardless of existance of `x` in multiset. O(1)"""
         i = len(self.a) - 1
         self.a[i].append(x)
-        self._countup_size(i)
-        return
+        self._update_min_max(i)
+        self._countup(i)
 
-    @wrap_insert
+    @_handle_empty_multiset
     def appendleft(self, x):
         """appendleft `x` regardless of existance of `x` in multiset. O(N^0.5)"""
         i = 0
         self.a[i].insert(0, x)
-        self._countup_size(i)
-        return
+        self._update_min_max(i)
+        self._countup(i)
 
-    def _countup_size(self, i):
+    def _countup(self, i):
         self.size += 1
-        self.sizes[i>>self.Wb] += 1
-        if len(self.a[i]) > self.m4:
-            self._average()
-            self._rebuild()
+        for j in range(3):
+            self._sizes[j][i>>self.K[j]] += 1
+        if len(self.a[i]) > self._excess:
+            self._balance()
+            self._calc_info()
     
-    def _countdown_size(self, i):
+    def _countdown(self, i):
         self.size -= 1
-        self.sizes[i>>self.Wb] -= 1
+        for j in range(3):
+            self._sizes[j][i>>self.K[j]] -= 1
         if not len(self.a[i]):
             self.a.pop(i)
-            self._rebuild()
+            self._calc_info()
 
     def pop(self, index=-1):
         """O(N^0.5)"""
         if not self: raise IndexError("pop from empty list")
         if index < 0:
             index += self.size
-        i, j = self._loc(index)
-        if j < len(self.a[i]):
+        if 0 <= index < len(self):
+            if ~len(self.a[-1]) <= index - len(self):
+                i = len(self.a) - 1
+                j = index - len(self) + len(self.a[-1])
+            elif index < len(self.a[0]):
+                i = 0
+                j = index
+            else:
+                i, j = self._loc(index)
             x = self.a[i].pop(j)
-            self._countdown_size(i)
+            self._update_min_max(i)
+            self._countdown(i)
             return x
-        raise IndexError
-
-    def popleft(self):
-        """O(N^0.5)"""
-        if not self: raise IndexError("pop from empty list")
-        x = self.a[0].pop(0)
-        self._countdown_size(0)
-        return x
-
-    def popright(self):
-        """O(1)"""
-        if not self: raise IndexError("pop from empty list")
-        i = len(self.a) - 1
-        x = self.a[i].pop()
-        self._countdown_size(i)
-        return x
+        else:
+            raise IndexError
 
     def discard(self, x):
-        """O(log N + N^0.5)"""
+        """O(N^0.5)"""
         tmp = self._find(x)
         if tmp is not None:
             i, j = tmp
             self.a[i].pop(j)
-            self._countdown_size(i)
+            self._update_min_max(i)
+            self._countdown(i)
 
-    def wrap_bound(func):
-        def inner_func(self, x):
-            index = func(self, x)
-            if index < len(self):
-                return index
-            else:
-                return None
-        return inner_func
-
-    @wrap_bound
     def lower_bound(self, x):
-        """O(log N + N^0.25)"""
-        return self._lower_bound(x)
-
-    def _lower_bound(self, x):
+        """O(N^0.5)"""
+        index = 0
         if self:
-            i, index = self._iterate_row_index(lambda bucket: bucket[0] < x)
-            return index + bisect.bisect_left(self.a[i], x)
+            i, index = self._iterate_row_index(x, __lt__)
+            index += bisect_left(self.a[i], x)
+        if index < len(self):
+            return index
         else:
-            return 0
+            return None
 
-    @wrap_bound
     def upper_bound(self, x):
-        """O(log N + N^0.25)"""
-        return self._upper_bound(x)
-
-    def _upper_bound(self, x):
+        """O(log N)"""
+        index = 0
         if self:
-            i, index = self._iterate_row_index(lambda bucket: bucket[0] <= x)
-            return index + bisect.bisect_right(self.a[i], x)
+            i, index = self._iterate_row_index(x, __le__)
+            index += bisect_right(self.a[i], x)
+        if index < len(self):
+            return index
         else:
-            return 0
+            return None
 
     def count(self, x):
-        """O(log N + N^0.25)"""
-        return self._upper_bound(x) - self._lower_bound(x)
+        """O(log N)"""
+        hi = self.upper_bound(x)
+        hi = hi if hi is not None else len(self)
+        lo = self.lower_bound(x)
+        lo = lo if lo is not None else len(self)
+        return hi - lo
 
     def gt(self, x):
         """O(log N)"""
-        if not self: return
-        i = self._bisect_row_index(lambda bucket: bucket[-1] <= x)
-        if self.a[i][-1] <= x:
-            i = min(i+1, len(self.a)-1)
-        if x < self.a[i][-1]:
-            return self.a[i][bisect.bisect_right(self.a[i], x)]
+        if self:
+            i = min(len(self.a)-1, bisect_right(self._maxs, x))
+            if x < self.a[i][-1]:
+                return self.a[i][bisect_right(self.a[i], x)]
+        return None
 
     def ge(self, x):
         """O(log N)"""
-        if not self: return
-        i = self._bisect_row_index(lambda bucket: bucket[-1] < x)
-        if self.a[i][-1] < x:
-            i = min(i+1, len(self.a)-1)
-        if x <= self.a[i][-1]:
-            return self.a[i][bisect.bisect_left(self.a[i], x)]
+        if self:
+            i = min(len(self.a)-1, bisect_left(self._maxs, x))
+            if x <= self.a[i][-1]:
+                j = bisect_left(self.a[i], x)
+                return self.a[i][j]
+        return None
 
     def lt(self, x):
         """O(log N)"""
-        if not self: return
-        i = self._bisect_row_index(lambda bucket: bucket[0] < x)
-        if self.a[i][0] < x:
-            return self.a[i][bisect.bisect_left(self.a[i], x) - 1]
+        if self:
+            i = max(0, bisect_left(self._mins, x) - 1)
+            if self.a[i][0] < x:
+                return self.a[i][bisect_left(self.a[i], x) - 1]
+        return None
 
     def le(self, x):
         """O(log N)"""
-        if not self: return
-        i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
-        if self.a[i][0] <= x:
-            return self.a[i][bisect.bisect_right(self.a[i], x) - 1]
+        if self:
+            i = max(0, bisect_right(self._mins, x) - 1)
+            if self.a[i][0] <= x:
+                return self.a[i][bisect_right(self.a[i], x) - 1]
+        return None
         
     def _loc(self, index):
-        """O(N^0.25)"""
+        """O(N^0.5)"""
         i = 0
-        j = index
-        while i + self.W < len(self.a) and j >= self.sizes[i>>self.Wb]:
-            j -= self.sizes[i>>self.Wb]
-            i += self.W
-        while i + 1 < len(self.a) and j >= len(self.a[i]):
-            j -= len(self.a[i])
-            i += 1
-        return i, j
+        for j in reversed(range(3)):
+            k = self.K[j]
+            _sizes = self._sizes[j]
+            while i + (1<<k) < len(self.a) and index >= _sizes[i>>k]:
+                index -= _sizes[i>>k]
+                i += (1<<k)
+        return i, index
 
-    def _bisect_row_index(self, func, l=0):
-        l, r = l, len(self.a)
-        while r-l > 1:
-            m = (r+l)>>1
-            if func(self.a[m]):
-                l = m
-            else:
-                r = m
-        return l
-
-    def _iterate_row_index(self, func):
+    def _iterate_row_index(self, x, op):
         i, index = 0, 0
-        while i + self.W < len(self.a) and func(self.a[i+self.W]):
-            index += self.sizes[i>>self.Wb]
-            i += self.W
-        while i + 1 < len(self.a) and func(self.a[i+1]):
-            index += len(self.a[i])
-            i += 1            
+        for j in reversed(range(3)):
+            k = self.K[j]
+            _sizes = self._sizes[j]
+            while i + (1<<k) < len(self.a) and op(self._mins[i + (1<<k)], x):
+                index += _sizes[i>>k]
+                i += (1<<k)
         return i, index
     
     def _find(self, x):
         """O(log N)"""
         if not self: return
-        i = self._bisect_row_index(lambda bucket: bucket[0] <= x)
-        j = bisect.bisect_left(self.a[i], x)
+        i = max(0, bisect_right(self._mins, x) - 1)
+        j = bisect_left(self.a[i], x)
         if j < len(self.a[i]) and self.a[i][j] == x:
             return i, j
 
@@ -328,9 +287,7 @@ class SortedMultiset():
         return self.size
 
     def __getitem__(self, index):
-        return self._getitem(index)
-
-    def _getitem(self, index):
+        """O(N^0.5)"""
         if index < 0:
             index += self.size
         if 0 <= index < len(self):
@@ -338,31 +295,29 @@ class SortedMultiset():
             return self.a[i][j]
         raise IndexError
 
-    def __setitem__(self, *args):
-        raise NotImplementedError("use pop(index) then insert(value)")
+    def __setitem__(self, index, value):
+        raise NotImplementedError("use pop(index) then add(value)")
 
     def __contains__(self, x):
-        return self._contains(x)
-
-    def _contains(self, x):
+        """O(log N)"""
         return False if self._find(x) is None else True
 
     def __str__(self):
-        a = self.flatten()
-        if len(a) > 10:
-            a = f'{str(a[:3])[:-1]}, ... , {str(a[-3:])[1:]}'
-        return f"{a}"
+        return self.flatten().__str__()
 
     def __repr__(self):
         return f"SortedMultiset({self.flatten()})"
 
     def __iter__(self):
-        return self._iter()
-
-    def _iter(self):
         for bucket in self.a:
             for x in bucket:
                 yield x
+
+    def __reversed__(self):
+        for bucket in reversed(self.a):
+            for x in reversed(bucket):
+                yield x
+            
         
     # ----------------------------------------------------------------------
     # class methods
@@ -404,55 +359,11 @@ class SortedMultiset():
         ***with PyPy3 on AtCoder***
         """
         sm = cls(a=[])
-        sm.ope = sm._lower_bound if count_duplicate else sm._upper_bound
+        sm.ope = sm.lower_bound if count_duplicate else sm.upper_bound
         cnt = 0
         for i, x in enumerate(a):
-            cnt += len(sm) - sm.ope(x)
-            sm.insert(x)
+            v = sm.ope(x)
+            v = v if v is not None else len(sm)
+            cnt += len(sm) - v
+            sm.add(x)
         return cnt
-
-    @classmethod
-    def with_bitmask(cls, a=[], base=30):
-
-        def wrap_input(self, class_func):
-            def inner_func(x):
-                x = (x[0]<<base) + x[1]
-                v = class_func(x)
-                return v
-            return inner_func
-        
-        def wrap_output(self, class_func):
-            def inner_func(*args):
-                v = class_func(*args)
-                x = [v>>base, v-((v>>base)<<base)]
-                return x
-            return inner_func
-
-        def wrap_yield(self, class_func):
-            def inner_func(*args):
-                for v in class_func(*args):
-                    x = [v>>base, v-((v>>base)<<base)]
-                    yield x
-            return inner_func
-
-        b = [None]*len(a)
-        for i in range(len(a)):
-            b[i] = (a[i][0]<<base) + a[i][1]
-        sm = SortedMultiset(a=b)
-        sm.wrap_input = wrap_input
-        sm.wrap_output = wrap_output
-        sm.wrap_yield = wrap_yield
-        input_funcs = [
-            'add', 'insert', 'discard', '_contains', 'count', 
-            'ge', 'gt', 'le', 'lt', 'lower_bound', 'upper_bound']
-        for input_func in input_funcs:
-            exec(f"sm.{input_func} = sm.wrap_input(sm, sm.{input_func})")
-        output_funcs = [
-            'pop', 'popleft', 'popright', '_getitem']
-        for output_func in output_funcs:
-            exec(f"sm.{output_func} = sm.wrap_output(sm, sm.{output_func})")
-        gen_funcs = [
-            '_iter']
-        for gen_func in gen_funcs:
-            exec(f"sm.{gen_func} = sm.wrap_yield(sm, sm.{gen_func})")
-        return sm
