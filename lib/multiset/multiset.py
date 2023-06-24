@@ -152,12 +152,10 @@ class SortedMultiset():
         if index < 0:
             index += self.size
         if 0 <= index < len(self):
-            if ~len(self.a[-1]) <= index - len(self):
-                i = len(self.a) - 1
-                j = index - len(self) + len(self.a[-1])
+            if -len(self.a[-1]) <= index - len(self):
+                i, j = len(self.a) - 1, index - len(self)
             elif index < len(self.a[0]):
-                i = 0
-                j = index
+                i, j = 0, index
             else:
                 i, j = self._loc(index)
             x = self.a[i].pop(j)
