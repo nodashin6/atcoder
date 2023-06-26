@@ -1,14 +1,21 @@
 import math
 from bisect import bisect_left, bisect_right, insort
 from operator import __le__, __lt__
-from typing import Any, Tuple, List, Callable, Iterator, Optional, Protocol, TypeVar, Generic
-class Comparable(Protocol):
-    def __lt__(self: Any, other: Any) -> bool: ...
-    def __le__(self: Any, other: Any) -> bool: ...
-    def __eq__(self: Any, other: Any) -> bool: ...
-    def __ne__(self: Any, other: Any) -> bool: ...
-    def __ge__(self: Any, other: Any) -> bool: ...
-    def __gt__(self: Any, other: Any) -> bool: ...
+from typing import Any, Tuple, List, Callable, Iterator, Optional, TypeVar, Generic
+class Comparable:
+    """Comparable class for comparison operations.
+
+    This class provides comparison methods but raises NotImplementedError for each method
+    since the Protocol feature is not available in this Python version.
+
+    To use this class, derive from it and implement the comparison methods accordingly.
+    """
+    def __lt__(self: Any, other: Any) -> bool: raise NotImplemetedError
+    def __le__(self: Any, other: Any) -> bool: raise NotImplemetedError
+    def __eq__(self: Any, other: Any) -> bool: raise NotImplemetedError
+    def __ne__(self: Any, other: Any) -> bool: raise NotImplemetedError
+    def __ge__(self: Any, other: Any) -> bool: raise NotImplemetedError
+    def __gt__(self: Any, other: Any) -> bool: raise NotImplemetedError
 T = TypeVar('T', bound=Comparable)
 BucketIndex = int
 ElementIndex = int
@@ -364,7 +371,7 @@ class SortedMultiset(Generic[T]):
         """
         i: BucketIndex = 0
         if self.min() < x:
-            raise ValueError
+            raise ValueError("Appended value must be less than or equal to the minimum value in the multiset.")
         self.a[i].insert(0, x)
         self._update_min_max(i)
         self._countup(i)
