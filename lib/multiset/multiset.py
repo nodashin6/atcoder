@@ -10,13 +10,14 @@ class Comparable:
 
     To use this class, derive from it and implement the comparison methods accordingly.
     """
-    def __lt__(self: Any, other: Any) -> bool: raise NotImplemetedError
-    def __le__(self: Any, other: Any) -> bool: raise NotImplemetedError
-    def __eq__(self: Any, other: Any) -> bool: raise NotImplemetedError
-    def __ne__(self: Any, other: Any) -> bool: raise NotImplemetedError
-    def __ge__(self: Any, other: Any) -> bool: raise NotImplemetedError
-    def __gt__(self: Any, other: Any) -> bool: raise NotImplemetedError
+    def __lt__(self: Any, other: Any) -> bool: raise NotImplementedError
+    def __le__(self: Any, other: Any) -> bool: raise NotImplementedError
+    def __eq__(self: Any, other: Any) -> bool: raise NotImplementedError
+    def __ne__(self: Any, other: Any) -> bool: raise NotImplementedError
+    def __ge__(self: Any, other: Any) -> bool: raise NotImplementedError
+    def __gt__(self: Any, other: Any) -> bool: raise NotImplementedError
 T = TypeVar('T', bound=Comparable)
+
 BucketIndex = int
 ElementIndex = int
 class SortedMultiset(Generic[T]):
@@ -141,7 +142,11 @@ class SortedMultiset(Generic[T]):
         >>> s = SortedMultiset()
         >>> a = s._build_buckets(list(range(1000)))
         >>> list(map(len, a))
-        [128, 128, 128, 128, 128, 128, 128, 104]
+        [125, 125, 125, 125, 125, 125, 125, 125]
+
+        >>> a = s._build_buckets(list(range(1004)))
+        >>> list(map(len, a))
+        [125, 125, 125, 125, 126, 126, 126, 126]
         """
         for a0, a1 in zip(a[:-1], a[1:]):
             if a0 > a1:
