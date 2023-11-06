@@ -7,12 +7,12 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, Linux, X64, python3]
+    runs-on: [self-hosted, Linux, X64, python]
     timeout-minutes: 10
     steps:
       - name: Pytest on the VPS Server
         run: |
           cd /home/nodashin/work/.venv
           source bin/activate
-          cd test-actions
+          cd atcoder
           pytest test
