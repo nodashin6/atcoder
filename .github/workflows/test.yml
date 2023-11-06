@@ -3,7 +3,7 @@ name: pytest at xserver
 on:
   push:
     branches:
-      - [develop]
+      - develop
 
 jobs:
   deploy:
