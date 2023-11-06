@@ -32,3 +32,8 @@ class ScaleReduction():
 
     def __len__(self):
         return len(self.a)
+
+    @classmethod
+    def from_list(cls, a):
+        sr = cls(a)
+        return [sr(ai) for ai in a]
