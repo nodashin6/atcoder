@@ -1,0 +1,18 @@
+name: pytest at xserver
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, Linux, X64, python3]
+    timeout-minutes: 10
+    steps:
+      - name: Pytest on the VPS Server
+        run: |
+          cd /home/nodashin/work/.venv
+          source bin/activate
+          cd test-actions
+          pytest test
