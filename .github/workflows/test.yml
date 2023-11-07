@@ -15,8 +15,5 @@ jobs:
           cd /home/nodashin/work/.venv
           source bin/activate
           cd atcoder
-<<<<<<< HEAD
-=======
           git pull origin develop
->>>>>>> e8db353 (modified)
           pytest test
