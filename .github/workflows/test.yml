@@ -1,4 +1,4 @@
-name: pytest at xserver
+name: pytest on vps
 
 on:
   push:
