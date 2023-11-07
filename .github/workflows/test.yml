@@ -1,4 +1,4 @@
-name: pytest at xserver
+name: pytest on vps
 
 on:
   push:
@@ -7,12 +7,13 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, Linux, X64, python3]
-    timeout-minutes: 10
+    runs-on: [self-hosted, Linux, X64, python]
+    timeout-minutes: 1
     steps:
       - name: Pytest on the VPS Server
         run: |
           cd /home/nodashin/work/.venv
           source bin/activate
-          cd test-actions
+          cd atcoder
+          git pull origin develop
           pytest test
