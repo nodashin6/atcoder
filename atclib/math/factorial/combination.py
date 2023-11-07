@@ -1,10 +1,10 @@
-class MODnCr():
+class Combination():
     """
     calculation of nCr (mod P)
 
     Example:
     --------
-    >>> ncr = MODnCr(n=2000, mod=10**9+7)
+    >>> ncr = Combination(n=2000, mod=10**9+7)
     >>> ncr(5, 2)
     10
 
