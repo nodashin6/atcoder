@@ -1,6 +1,6 @@
 import math
 from operator import \
-    __add__, __sub__, __mul__, __floordiv__, __truediv__, \
+    __add__, __sub__, __mul__, __floordiv__, __truediv__, __mod__, \
     __xor__, __and__, __or__, __pow__
 class Vector:
 
@@ -45,6 +45,7 @@ class Vector:
     __mul__ = __ope(__mul__)
     __floordiv__ = __ope(__floordiv__)
     __truediv__ = __ope(__truediv__)
+    __mod__ = __ope(__mod__)
     __xor__ = __ope(__xor__)
     __and__ = __ope(__and__)
     __or__ = __ope(__or__)

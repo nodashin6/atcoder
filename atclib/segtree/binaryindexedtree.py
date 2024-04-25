@@ -21,7 +21,7 @@ class BinaryIndexedTree():
     about BinaryIndexedTree : 
         https://algo-logic.info/binary-indexed-tree/
     """
- 
+
     def __init__(self, a=None, n=None, e=None, ruq=True):
         """
         Parameters
@@ -58,13 +58,13 @@ class BinaryIndexedTree():
 
     def __len__(self):
         return self.n
- 
+
     def __getitem__(self, i):
         return self.sum(i+1) - self.sum(i)
 
     def __setitem__(self, i, v):
         return self.add(i, v-self[i])
- 
+
     def sum(self, r):
         """
         Return:
@@ -130,7 +130,7 @@ def count_inversion(a):
 
     cnt = 0
     r_max = max(d.values())+1
-    bit = BinaryIndexedTree(n=r_max, v=0, ruq=False)
+    bit = BinaryIndexedTree(n=r_max, e=0, ruq=False)
     for i, ai in enumerate(a):
         cnt += i - bit.sum(r=d[ai]+1)
         bit.add(i=d[ai], v=1)
