@@ -62,3 +62,11 @@ class Combination():
         if 2*n > self.n:
             self._setup(start=self.n+1, end=2*n+1)
         return self(2*n, n) * self.inverse(n+1)
+    
+    def nCr(self, a, b):
+        """a! / b!(a-b)!"""
+        return self(a, b)
+    
+    def nHr(self, a, b):
+        """(a+b-1)! / a!(b-1)!"""
+        return self.factorial(a+b-1) * self.invfactorial(a) * self.invfactorial(b-1) % self.P
